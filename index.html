@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Tetris</title>
+  </head>
+  <body>im
+    <img src="./assets/images/b1.png" id="tilesheet" style="display: none;">
+    <img src="./assets/fonts/font.png" id="fontsheet" style="display: none;">
+    <img src="./assets/images/fieldbg.png" id="canvasbg" style="position: absolute;">
+    <a href="#" id="setting-link">
+      <img src="./assets/images/settings_icon.png" id="setting-icon" class="icon">
+    </a>
+    <a href="#" id="restart-link">
+      <img src="./assets/images/restart_icon.png" id="restart-icon" class="icon">
+    </a>
+    <canvas id="canvas">Your browser doesn't support html canvas.</canvas>
+    <canvas id="previewCanvas">Your browser doesn't support html canvas.</canvas>
+    <div class="modal" id="gameover">
+      <div class="modal-content">
+        <h3 id="message" text = "10vw">Level Select</h3>
+
+        <span class="custom-dropdown big">
+          <select id="game-mode-select">    
+              <option value="marathon" selected="selected">Marathon</option>
+              <option value="sprint">Sprint</option>  
+              <option value="ultra">Ultra</option>
+          </select>
+        </span>
+        <div id="game-mode-menus" style="margin-bottom: 3em; margin-top: 3em; width: 100%">
+          <div id="marathon-options" style="display: none;">
+            <p>Endless mode of increasingly difficult levels</p>
+            <input id="marathon-level" type="number" class="form__input" placeholder="Level select (1-15)" min="1">
+            <label for="name" class="form__label">Level select (1-29+)</label>
+          </div>
+          <div id="ultra-options" style="display: none;">
+            <p>Clear lines under a time limit.</p>
+            <input id="ultra-time" type="number" class="form__input" placeholder="Time (1-5 minutes)" min="1" max="5">
+            <label for="name" class="form__label">Time (1-5 minutes)</label>
+          </div>
+          <div id="sprint-options" style="display: none;">
+            <p>Race to complete a number of lines</p>
+            <input id="sprint-lines" type="number" class="form__input" placeholder="Lines (1+)" min="1" value="40">
+            <label for="name" class="form__label">Lines (1+)</label>
+          </div>
+        </div>
+        <button type="button" id="button" class="button">Play</button>
+      </div>
+    </div>
+
+    <div class="modal" id="settings" style="display: none;">
+      <div class="modal-content" style="margin-top: 2vh; width: 30vw;">
+        <h3>Settings</h3>
+        <h3 style="padding-left: 40px;float: left;">Style</h3>
+        <span class="custom-dropdown big" style="margin-right: 30px;  float: right;">
+          <select id="style-select">
+          </select>
+        </span>
+        <div style="padding-bottom: 60px;"></div>
+        <label class="checkbox_container" >Music
+          <input type="checkbox" id="music" checked>
+          <span class="checkmark"></span>
+        </label>
+        <label class="checkbox_container" >Sound Effects
+          <input type="checkbox" id="sound-effects" checked>
+          <span class="checkmark"></span>
+        </label>
+        <label class="checkbox_container" >Screen Shake
+          <input type="checkbox" id="screen-shake" checked>
+          <span class="checkmark"></span>
+        </label>
+        <label class="checkbox_container" >Ghost Piece
+          <input type="checkbox" id="ghost-piece" checked>
+          <span class="checkmark"></span>
+        </label>
+        <input style="background-color: #eee;" id="lock-delay" type="number" value="500" class="form__input" placeholder="Lock Delay (1+)" min="1">
+            <label for="name" class="form__label">Lock Delay (1+)</label>
+        <input style="background-color: #eee;" id="max-lock-resets" type="number" value="15" class="form__input" placeholder="Max Lock Resets (0+)" min="1">
+            <label for="name" class="form__label">Max Lock Resets (0+)</label>
+        <input style="background-color: #eee;" id="auto-repeat-delay" type="number" value="25" class="form__input" placeholder="Auto Repeat Delay (1+)" min="1">
+            <label for="name" class="form__label">Auto Repeat Delay (0+)</label>
+        <input style="background-color: #eee;" id="delay-auto-shift" type="number" value="125" class="form__input" placeholder="Delay Auto Shift (0+)" min="1">
+            <label for="name" class="form__label">Delay Auto Shift (0+)</label>
+        <p style="color: red; font-size: 10px;"><i>Not that performance limits accuracy and all times in milliseconds.</i></p>
+        <button type="button" id="settings-submit" class="button">Submit</button>
+      </div>
+    </div>
+
+
+    <style>
+/* Customize the label (the checkbox_container) */
+.checkbox_container {
+  display: block;
+  position: relative;
+  padding-left: 35px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  font-size: 22px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Hide the browser's default checkbox */
+.checkbox_container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Create a custom checkbox */
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 25px;
+  height: 25px;
+  width: 25px;
+  background-color: #eee;
+}
+
+/* On mouse-over, add a grey background color */
+.checkbox_container:hover input ~ .checkmark {
+  background-color: #ccc;
+}
+
+/* When the checkbox is checked, add a blue background */
+.checkbox_container input:checked ~ .checkmark {
+  background-color: #FFFFFF;
+}
+
+/* Create the checkmark/indicator (hidden when not checked) */
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* Show the checkmark when checked */
+.checkbox_container input:checked ~ .checkmark:after {
+  display: block;
+}
+
+/* Style the checkmark/indicator */
+.checkbox_container .checkmark:after {
+  left: 9px;
+  top: 5px;
+  width: 5px;
+  height: 10px;
+  border: solid black;
+  border-width: 0 3px 3px 0;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+} 
+.icon{
+  position: absolute;
+  width: 5vh;
+  height: 5vh;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+.form__label {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.2rem;
+  margin: 0 auto;
+  margin-left: 2rem;
+  margin-top: 0.1rem;
+  display: block;
+  transition: all 0.3s;
+  transform: translateY(0rem);
+}
+
+
+.form__input {
+  font-family: 'Roboto', sans-serif;
+  color: #333;
+  font-size: 1.2rem;
+	margin: 0 auto;
+  padding: 1.5rem 0rem;
+  border-radius: 0.2rem;
+  background-color: rgb(255, 255, 255);
+  text-align: center;
+  border: none;
+  width: 90%;
+  display: block;
+  border-bottom: 0.3rem solid transparent;
+  transition: all 0.3s;
+}
+
+.form__input:placeholder-shown + .form__label {
+  opacity: 0;
+  visibility: hidden;
+  -webkit-transform: translateY(-4rem);
+  transform: translateY(-4rem);
+}
+
+#canvas {
+  padding: 0;
+  margin: auto;
+  margin-top: 5vh;
+  margin-bottom: 5vh;
+  display: block;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  outline: black 5px solid;
+}
+#canvasbg {
+  padding: 0;
+  margin: auto;
+  margin-top: 5vh;
+  margin-bottom: 5vh;
+  display: block;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+#previewCanvas {
+  margin-top: 5vh;
+  padding: 0;
+  display: block;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+p {
+  font-family: 'Roboto', sans-serif;
+}
+* {
+  /* margin: 0; */
+  padding: 0;
+  font-family: 'Roboto', sans-serif;
+  user-select: none;
+}
+      /* The Modal (background) */
+.modal {
+  display: block; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
+}
+
+/* Modal Content/Box */
+.modal-content {
+  background-color: #fefefe;
+  margin: 15vh auto; /* 15% from the top and centered */
+  padding: 20px;
+  border: 1px solid #888;
+  width: 25vw; /* Could be more or less, depending on screen size */
+  text-align: center;
+}
+.button {
+  background-color: #e7e7e7; 
+  color: black;
+  border: none;
+  padding: 1vw 8vw;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 1.2em;
+  transition-duration: 0.4s;
+}
+
+/* Select box by red tem design */
+
+.big {
+  font-size: 1.2em;
+}
+
+.small {
+  font-size: .7em;
+}
+
+.square {
+  width: .7em;
+  height: .7em;
+  margin: .5em;
+  display: inline-block;
+}
+
+/* Custom dropdown */
+.custom-dropdown {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.custom-dropdown select {
+  background-color: #e7e7e7;
+  color: #000;
+  font-size: inherit;
+  padding: .5em;
+  padding-right: 2.5em; 
+  border: 0;
+  margin: 0;
+  border-radius: 3px;
+  text-indent: 0.01px;
+  text-overflow: '';
+  -webkit-appearance: button; /* hide default arrow in chrome OSX */
+}
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.custom-dropdown::before,
+.custom-dropdown::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.custom-dropdown::after { /*  Custom dropdown arrow */
+  content: "\25BC";
+  height: 1em;
+  font-size: .625em;
+  line-height: 1;
+  right: 1.2em;
+  top: 50%;
+  margin-top: -.5em;
+}
+
+.custom-dropdown::before { /*  Custom dropdown arrow cover */
+  width: 2em;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 0 3px 3px 0;
+}
+
+.custom-dropdown select[disabled] {
+  color: rgba(0,0,0,.3);
+}
+
+.custom-dropdown select[disabled]::after {
+  color: rgba(0,0,0,.1);
+}
+
+.custom-dropdown::before {
+  background-color: rgba(0,0,0,.15);
+}
+
+.custom-dropdown::after {
+  color: rgba(0,0,0,.4);
+}
+ 
+
+.button:hover {
+  background-color: #555555;
+  color: white;
+}
+    </style>
+    <script src="JS/stats.min.js" charset="utf-8"></script>
+    <script src="JS/const.js" charset="utf-8"></script>
+    <script src="JS/tools.js" charset="utf-8"></script>
+    <script src="JS/player.js" charset="utf-8"></script>
+    <script src="JS/squares.js" charset="utf-8"></script>
+    <script src="JS/keys.js" charset="utf-8"></script>
+    <script src="JS/script.js" charset="utf-8"></script>
+  </body>
+</html>
