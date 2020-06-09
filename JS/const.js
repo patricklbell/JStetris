@@ -30,17 +30,7 @@ var music_input = document.getElementById('music');
 var sound_effects_input = document.getElementById('sound-effects');
 var screen_shake_input = document.getElementById('screen-shake');
 var ghost_piece_input = document.getElementById('ghost-piece');
-
-setting_icon.onclick = function (){
-    settings.style.display = "block";
-    changingPause = false;
-    inGame = false;
-    pause(ctx);
-}
-var restart_icon = document.getElementById('restart-icon');
-restart_icon.onclick = function (){
-    endGame();
-}
+var style_select = document.getElementById("style-select")
 
 var ctx = canvas.getContext('2d');
 var previewCtx = previewCanvas.getContext('2d');
@@ -126,6 +116,7 @@ AUDIO = {
 AUDIO["theme"].loop = true;
 
 DEFAULT_STYLE = "Default";
+var STYLE = DEFAULT_STYLE;
 const STYLES = {
     "Retro" : {
         "blockskin" : "b9.png",
@@ -170,28 +161,6 @@ const STYLES = {
         "font" : "font.png",
     },
 };
-
-var style_select = document.getElementById("style-select")
-setupStyle = function() {
-    let i = 0;
-    for (var key in STYLES) {
-        let opt = document.createElement('option');
-
-        // create text node to add to option element (opt)
-        opt.appendChild( document.createTextNode(key) );
-
-        // set properties of opt
-        opt.value = i; 
-        if(key === DEFAULT_STYLE){
-            opt.selected = "selected";
-        }
-
-        // add opt to end of select box (sel)
-        style_select.appendChild(opt); 
-        i++;
-    }
-}
-setupStyle();
 
 const GAME_MODES = {
     "marathon" : {

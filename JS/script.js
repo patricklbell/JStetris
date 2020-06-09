@@ -335,13 +335,15 @@ function submitSettings(){
   SOUND_EFFECTS = sound_effects_input.checked;
   SCREEN_SHAKE = screen_shake_input.checked;
   GHOST = ghost_piece_input.checked;
+  STYLE = style_select.options[style_select.selectedIndex].text
   
+
   pushCookies();
+  resize();
   unpause(ctx, sqr);
   settings.style.display = "none";
 }
 settings_submit.addEventListener("click", submitSettings);
-loadStyle(DEFAULT_STYLE);
 
 // Restart code
 document.getElementById('button').addEventListener("click", function (e) {

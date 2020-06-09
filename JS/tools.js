@@ -122,11 +122,11 @@ function unpause(ctx, sqr){
         ctx.putImageData(imgData, 0, 0, 0, 0, ctx.canvas.width, ctx.canvas.height);
 
         if (i === 3) {
-            if(SOUND_EFFECTS && i != 0){AUDIO["countdown"].cloneNode().play();}
+            if(SOUND_EFFECTS){AUDIO["countdown"].cloneNode().play();}
             ctx.drawText("2", ctx.canvas.width / 2 - COUNTDOWN_FONT_SIZE/2, ctx.canvas.height / 2 - COUNTDOWN_FONT_SIZE/2, 5, COUNTDOWN_FONT_SIZE);
         }
         if(i === 2){
-            if(SOUND_EFFECTS && i != 0){AUDIO["countdown"].cloneNode().play();}
+            if(SOUND_EFFECTS){AUDIO["countdown"].cloneNode().play();}
             ctx.drawText("1", ctx.canvas.width / 2 - COUNTDOWN_FONT_SIZE/2, ctx.canvas.height / 2 - COUNTDOWN_FONT_SIZE/2, 4, COUNTDOWN_FONT_SIZE);
         }
         else if(i === 1){ 
@@ -275,25 +275,101 @@ function determineScore(sqr, player, num_lines, b2b){
     return SCORE_TABLE[str_result];
 }
 
+setting_icon.onclick = function (){
+    settings.style.display = "block";
+    changingPause = false;
+    inGame = false;
+    pause(ctx);
+}
+var restart_icon = document.getElementById('restart-icon');
+restart_icon.onclick = function (){
+    endGame();
+}
+
+
+setupStyle = function() {
+    let i = 0;
+    for (var key in STYLES) {
+        let opt = document.createElement('option');
+
+        // create text node to add to option element (opt)
+        opt.appendChild( document.createTextNode(key) );
+
+        // set properties of opt
+        opt.value = i; 
+        if(key === DEFAULT_STYLE){
+            opt.selected = "selected";
+        }
+
+        // add opt to end of select box (sel)
+        style_select.appendChild(opt); 
+        i++;
+    }
+}
+setupStyle();
+
+// https://stackoverflow.com/questions/19189785/is-there-a-good-cookie-library-for-javascript/19189846
+/*********************************************************
+gets the value of a cookie
+**********************************************************/
+document.getCookie = function(sName)
+{
+    sName = sName.toLowerCase();
+    var oCrumbles = document.cookie.split(';');
+    for(var i=0; i<oCrumbles.length;i++)
+    {
+        var oPair= oCrumbles[i].split('=');
+        var sKey = decodeURIComponent(oPair[0].trim().toLowerCase());
+        var sValue = oPair.length>1?oPair[1]:'';
+        if(sKey == sName)
+            return decodeURIComponent(sValue);
+    }
+    return undefined;
+}
+/*********************************************************
+sets the value of a cookie
+**********************************************************/
+document.setCookie = function(sName,sValue)
+{
+    var oDate = new Date();
+    oDate.setYear(oDate.getFullYear()+1);
+    var sCookie = encodeURIComponent(sName) + '=' + encodeURIComponent(sValue);
+    //  + ';expires=' + oDate.toGMTString() + ';path=/';
+    document.cookie= sCookie;
+}
+/*********************************************************
+removes the value of a cookie
+**********************************************************/
+document.clearCookie = function(sName)
+{
+    setCookie(sName,'');
+}
+
+function parseBool(str){
+    return str === "true";
+}
+
 function loadCookies(){
-  if (Cookies.get('lockDelay') !== undefined) {LOCK_DELAY = Cookies.get('lockDelay')};
-  if (Cookies.get('maxLockResets') !== undefined) {MAX_LOCK_RESETS = Cookies.get('maxLockResets')};
-  if (Cookies.get('autoRepeatDelay') !== undefined) {AUTO_REPEAT_RATE = Cookies.get('autoRepeatDelay')};
-  if (Cookies.get('delayAutoShift') !== undefined) {DELAY_AUTO_SHIFT = Cookies.get('delayAutoShift')};
-  if (Cookies.get('music') !== undefined) {MUSIC = Cookies.get('music')};
-  if (Cookies.get('soundEffect') !== undefined) {SOUND_EFFECTS = Cookies.get('soundEffect')};
-  if (Cookies.get('screenShake') !== undefined) {SCREEN_SHAKE = Cookies.get('screenShake')};
-  if (Cookies.get('ghost') !== undefined) {GHOST = Cookies.get('ghost')};
+  if (document.getCookie('lockDelay') !== undefined) {LOCK_DELAY = parseInt(document.getCookie('lockDelay'));};
+  if (document.getCookie('maxLockResets') !== undefined) {MAX_LOCK_RESETS = parseInt(document.getCookie('maxLockResets'));};
+  if (document.getCookie('autoRepeatDelay') !== undefined) {AUTO_REPEAT_RATE = parseInt(document.getCookie('autoRepeatDelay'));};
+  if (document.getCookie('delayAutoShift') !== undefined) {DELAY_AUTO_SHIFT = parseInt(document.getCookie('delayAutoShift'));};
+  if (document.getCookie('music') !== undefined) {MUSIC = parseBool(document.getCookie('music'));};
+  if (document.getCookie('soundEffect') !== undefined) {SOUND_EFFECTS = parseBool(document.getCookie('soundEffect'));};
+  if (document.getCookie('screenShake') !== undefined) {SCREEN_SHAKE = parseBool(document.getCookie('screenShake'));};
+  if (document.getCookie('ghost') !== undefined) {GHOST = parseBool(document.getCookie('ghost'));};
+  if (document.getCookie('style') !== undefined) {loadStyle(document.getCookie('style')); STYLE = document.getCookie('style');};
 }
 loadCookies();
 
 function pushCookies(){
-  Cookies.set("lockDelay", LOCK_DELAY);
-  Cookies.set("maxLockResets", MAX_LOCK_RESETS);
-  Cookies.set("autoRepeatDelay", AUTO_REPEAT_RATE);
-  Cookies.set("delayAutoShift", DELAY_AUTO_SHIFT);
-  Cookies.set("music", MUSIC);
-  Cookies.set("soundEffect", SOUND_EFFECTS);
-  Cookies.set("screenShake", SCREEN_SHAKE);
-  Cookies.set("ghost", GHOST);
+  document.setCookie("lockDelay", LOCK_DELAY);
+  document.setCookie("maxLockResets", MAX_LOCK_RESETS);
+  document.setCookie("autoRepeatDelay", AUTO_REPEAT_RATE);
+  document.setCookie("delayAutoShift", DELAY_AUTO_SHIFT);
+  document.setCookie("music", MUSIC);
+  document.setCookie("soundEffect", SOUND_EFFECTS);
+  document.setCookie("screenShake", SCREEN_SHAKE);
+  document.setCookie("ghost", GHOST);
+  document.setCookie("style", STYLE);
 }
