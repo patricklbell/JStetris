@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>Tetris</title>
   </head>
-  <body>im
+  <body>
     <img src="./assets/images/b1.png" id="tilesheet" style="display: none;">
     <img src="./assets/fonts/font.png" id="fontsheet" style="display: none;">
     <img src="./assets/images/fieldbg.png" id="canvasbg" style="position: absolute;">
@@ -18,7 +18,7 @@
     <canvas id="previewCanvas">Your browser doesn't support html canvas.</canvas>
     <div class="modal" id="gameover">
       <div class="modal-content">
-        <h3 id="message" text = "10vw">Level Select</h3>
+        <h3 id="message" text = "10vw">Select Game Mode</h3>
 
         <span class="custom-dropdown big">
           <select id="game-mode-select">    
@@ -30,13 +30,13 @@
         <div id="game-mode-menus" style="margin-bottom: 3em; margin-top: 3em; width: 100%">
           <div id="marathon-options" style="display: none;">
             <p>Endless mode of increasingly difficult levels</p>
-            <input id="marathon-level" type="number" class="form__input" placeholder="Level select (1-15)" min="1">
+            <input id="marathon-level" type="number" class="form__input" placeholder="Level select (1-29+)" min="1">
             <label for="name" class="form__label">Level select (1-29+)</label>
           </div>
           <div id="ultra-options" style="display: none;">
             <p>Clear lines under a time limit.</p>
-            <input id="ultra-time" type="number" class="form__input" placeholder="Time (1-5 minutes)" min="1" max="5">
-            <label for="name" class="form__label">Time (1-5 minutes)</label>
+            <input id="ultra-time" type="number" class="form__input" placeholder="Time (minutes)" min="1">
+            <label for="name" class="form__label">Time (minutes)</label>
           </div>
           <div id="sprint-options" style="display: none;">
             <p>Race to complete a number of lines</p>
@@ -49,7 +49,7 @@
     </div>
 
     <div class="modal" id="settings" style="display: none;">
-      <div class="modal-content" style="margin-top: 2vh; width: 30vw;">
+      <div class="modal-content">
         <h3>Settings</h3>
         <h3 style="padding-left: 40px;float: left;">Style</h3>
         <span class="custom-dropdown big" style="margin-right: 30px;  float: right;">
@@ -73,16 +73,20 @@
           <input type="checkbox" id="ghost-piece" checked>
           <span class="checkmark"></span>
         </label>
-        <input style="background-color: #eee;" id="lock-delay" type="number" value="500" class="form__input" placeholder="Lock Delay (1+)" min="1">
-            <label for="name" class="form__label">Lock Delay (1+)</label>
+        <input style="background-color: #eee;" id="lock-delay" type="number" value="500" class="form__input" placeholder="Lock Delay (0+)" min="1">
+            <label for="name" class="form__label">Lock Delay (0+)</label>
         <input style="background-color: #eee;" id="max-lock-resets" type="number" value="15" class="form__input" placeholder="Max Lock Resets (0+)" min="1">
             <label for="name" class="form__label">Max Lock Resets (0+)</label>
         <input style="background-color: #eee;" id="auto-repeat-delay" type="number" value="25" class="form__input" placeholder="Auto Repeat Delay (1+)" min="1">
-            <label for="name" class="form__label">Auto Repeat Delay (0+)</label>
-        <input style="background-color: #eee;" id="delay-auto-shift" type="number" value="125" class="form__input" placeholder="Delay Auto Shift (0+)" min="1">
-            <label for="name" class="form__label">Delay Auto Shift (0+)</label>
+            <label for="name" class="form__label">Auto Repeat Delay (1+)</label>
+        <input style="background-color: #eee;" id="delay-auto-shift" type="number" value="125" class="form__input" placeholder="Delay Auto Shift (1+)" min="1">
+            <label for="name" class="form__label">Delay Auto Shift (1+)</label>
         <p style="color: red; font-size: 10px;"><i>Not that performance limits accuracy and all times in milliseconds.</i></p>
         <button type="button" id="settings-submit" class="button">Submit</button>
+      </div>
+    </div>
+    <div class="modal" id="results" style="display: none;">
+      <div class="modal-content" id="results-content" style="margin-top: 10vh; width: 30vw;">
       </div>
     </div>
 

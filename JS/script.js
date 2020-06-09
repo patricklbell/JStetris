@@ -15,7 +15,7 @@ var lockBuffer = 0, lockDelay = false, lockResets = 0;
 var fallDelayBuffer = 0, lastHandledKeyBuffer = 0, shiftDelayBuffer = 0;
 var keyPressed = 0, keyBuffer = []; 
 
-var paused = false, inGame = false, changingPause = false, b2b_flag = false;
+var paused = false, inGame = false, b2b_flag = false;
 
 // Holds
 var nextShape, holding = false, held, switched = false;
@@ -54,6 +54,9 @@ window.addEventListener('resize', resize);
 resize();
 
 function render_preview(ctx, numPreviews){
+  
+  style = 0
+  
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   let font_size = Math.floor(ctx.canvas.height*PREVIEW_FONT_SIZE);
   let font_gap = Math.floor(ctx.canvas.height*PREVEIW_FONT_GAP);
@@ -72,13 +75,12 @@ function render_preview(ctx, numPreviews){
     s = Math.floor(size*SECOND_PREVIEW_SCALE_DOWN) / size;
   }
   
-  style = 0
+  let space = font_size*2 + 2*font_gap + section_gap;
+  let stats_queue = [];
+
   if(GAMERULES["levels"]){
     style = currentLevel % 7;
   }
-  
-  let space = font_size*2 + 2*font_gap + section_gap;
-  let stats_queue = [];
 
   if(sqr !== undefined && GAMERULES["showLines"]) {
     if(GAMERULES["lineLimit"] && sqr.linesCleared > GAMERULES["lineLimitValue"] * (9/10)){style = 2;}
@@ -240,7 +242,7 @@ function gameloop () {
     render_preview(previewCtx, PREVIEWS);
   }
 
-  if(keyPressed === "Escape" && shiftDelayBuffer === 0 && !changingPause && inGame){
+  if(keyPressed === "Escape" && shiftDelayBuffer === 0 && inGame && unpause_interval === false){
     if(paused) {unpause(ctx, sqr);}
     else       {pause(ctx);}
     keyPressed = 0;
@@ -250,26 +252,30 @@ function gameloop () {
 }
 
 function keyDownHandler(event) {
-  if(event.code !== keyPressed) {
-    shiftDelayBuffer = 0;
+  if(event.code !== keyPressed && keyPressed !== 0) {
     lastHandledKeyBuffer = AUTO_REPEAT_RATE + 1;
     keyBuffer.push(event.code);
+  } else {
+    shiftDelayBuffer = 0;
   }
   keyPressed = event.code;
+  console.log(keyPressed, keyBuffer);
 }
 function keyUpHandler(event) {
   if(event.code === keyPressed) {
-      if(keyBuffer.length == 0 || keyBuffer[0] == event.code){
+      if(keyBuffer.length == 0 || keyBuffer[0] === event.code){
         keyPressed = 0;
       } else {
         keyPressed = keyBuffer[0];
       }
   }
-
-  let index = keyBuffer.indexOf(event.code)
-  if(index !== -1){
+  
+  let index = keyBuffer.indexOf(event.code);
+  while(index !== -1){
     keyBuffer.splice(index, 1);
+    index = keyBuffer.indexOf(event.code)
   }
+  console.log("Released", keyPressed, keyBuffer);
 }
 
 document.addEventListener('keydown', keyDownHandler, false);
@@ -315,7 +321,7 @@ document.getElementById('button').addEventListener("click", function (e) {
   if (e.x != 0 && e.y != 0){
     gameover.style.display = 'none';
     
-    GAMERULES["countdownValue"] = Math.min(time_dom_ultra.value,5)*60*1000
+    GAMERULES["countdownValue"] = Math.max(time_dom_ultra.value,0)*60*1000
     
     if (GAMERULES["levels"]){
       startLevel = Math.floor(Math.max(level_dom_marathon.value, 1));

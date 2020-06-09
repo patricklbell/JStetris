@@ -75,7 +75,6 @@ function drawText(text, x, y, style=0, s=size){
 function unpause(ctx, sqr){
     window.dispatchEvent(new Event('resize'));
     paused = true;
-    changingPause = true;
     
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     sqr.render(ctx);
@@ -85,7 +84,7 @@ function unpause(ctx, sqr){
     if(SOUND_EFFECTS){AUDIO["countdown"].cloneNode().play();}
 
     ctx.drawText("3", ctx.canvas.width / 2 - COUNTDOWN_FONT_SIZE/2, ctx.canvas.height / 2 - COUNTDOWN_FONT_SIZE/2, 2, COUNTDOWN_FONT_SIZE); 
-    var timer = setInterval(function (){
+    unpause_interval = setInterval(function (){
         i--;
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         sqr.render(ctx);
@@ -100,23 +99,20 @@ function unpause(ctx, sqr){
             ctx.drawText("1", ctx.canvas.width / 2 - COUNTDOWN_FONT_SIZE/2, ctx.canvas.height / 2 - COUNTDOWN_FONT_SIZE/2, 4, COUNTDOWN_FONT_SIZE);
         }
         else if(i === 1){ 
-            if(changingPause) {
-                paused = false;
-                changingPause = false;
-            } else {
-                pause(ctx);
-            } 
             if(MUSIC && inGame) {AUDIO["theme"].play()};
+            paused = false;
 
-            bufferImages(ctx, size);
-            bufferImages(previewCtx, size);
-            clearInterval(timer);
+            clearInterval(unpause_interval);
+            unpause_interval = false;
         }
         
     }, 1000);
 }
 
 function pause(ctx){
+    clearInterval(unpause_interval);
+    unpause_interval = false;
+
     AUDIO["theme"].pause();
     if(SOUND_EFFECTS){AUDIO["pause"].cloneNode().play();}
     height = Math.floor(ctx.canvas.height / 6);
@@ -162,9 +158,11 @@ function bufferImages(canvas, size){
     canvas.offScreenCanvas = document.createElement('canvas');
     canvas.offScreenCanvas.width = size*32;
     canvas.offScreenCanvas.height = size + size*30;
+    let tmpCtx = canvas.offScreenCanvas.getContext("2d");
 
-    canvas.offScreenCanvas.getContext("2d").drawImage(tileSheet, 32*2, 0, 32*7, 32, 0, 0, size*7, size)
-    canvas.offScreenCanvas.getContext("2d").drawImage(fontSheet, 0, 0, 16*32, 16*30, 0, size, size*32, size*30)
+    tmpCtx.clearRect(0, 0, size*32, size + size*30);
+    tmpCtx.drawImage(tileSheet, 32*2, 0, 32*7, 32, 0, 0, size*7, size);
+    tmpCtx.drawImage(fontSheet, 0, 0, 16*32, 16*30, 0, size, size*32, size*30);
 }
 
 
@@ -181,7 +179,7 @@ function endGame(){
         if(GAMERULES["resultsTimer"]){results_queue.push(["Time: " + (Math.max((now - playTimer) / 1000, 0)).toFixed(2)]);}
         if(GAMERULES["resultsLines"]){results_queue.push(["Lines: " + sqr.linesCleared]);}
         if(GAMERULES["resultsScore"]){results_queue.push(["Score: " + score]);}
-
+        
         let html = "<h3>Game Over</h3>"
         for (let i = 0; i < results_queue.length; i++) {
             html += `<div class="result-item"><p>`+ results_queue[i] +"</p></div>";
@@ -190,13 +188,15 @@ function endGame(){
         results_content.innerHTML = html;
         document.getElementById('results-continue').addEventListener("click", function (e){
             if (e.x != 0 && e.y != 0){
-              results.style.display = 'none';
-              gameover.style.display = 'block';
+                results.style.display = 'none';
+                gameover.style.display = 'block';
             }
-          });
+        });
     } else {
         gameover.style.display = 'block';
     }
+    clearInterval(unpause_interval);
+    unpause_interval = false;
 }
 
 function loadStyle(style){

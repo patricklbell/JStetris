@@ -51,21 +51,21 @@ var keyBindings = {
         }
     },
     "ArrowLeft" : function(){
-        if(SOUND_EFFECTS){AUDIO["move"].cloneNode().play();}
         player.move(-1, 0);
         if (player.testCollision(sqr) === true) {
             player.unapply();
         } else {
+            if(SOUND_EFFECTS){AUDIO["move"].cloneNode().play();}
             player.apply();
             player.lastAction = "moveLeft";
         }
     },
     "ArrowRight" : function(){
-        if(SOUND_EFFECTS){AUDIO["move"].cloneNode().play();}
         player.move(1, 0);
         if (player.testCollision(sqr) === true) {
             player.unapply();
         } else {
+            if(SOUND_EFFECTS){AUDIO["move"].cloneNode().play();}
             player.apply();
             player.lastAction = "moveRight";
         }

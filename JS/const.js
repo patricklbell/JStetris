@@ -1,6 +1,7 @@
 var canvas = document.getElementById('canvas');
 var fieldbg = document.getElementById('canvasbg');
 var previewCanvas = document.getElementById('previewCanvas');
+var unpause_interval;
 
 var tileSheet = document.getElementById('tilesheet');
 var fontSheet = document.getElementById('fontsheet');
@@ -130,7 +131,7 @@ const STYLES = {
         "blockskin" : "b9.png",
         "theme" : "theme_classic.mp3",
         "fieldbg" : "fieldbg.png",
-        "font" : "font.png",
+        "font" : "font_bw_bold_inv.png",
     },
     "Default" : {
         "blockskin" : "b1.png",
