@@ -25,25 +25,14 @@ var player, sqr, randomGenerator = new randomBag(SHAPES.length);
 
 
 function resize() {
-  try {
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    sqr.render(ctx);
-    player.render(ctx, sqr);
-    render_preview(previewCtx, PREVIEWS);
-  } catch (error) {
-    
-  }
-  var ctxImgData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
-  var previewImgData = previewCtx.getImageData(0, 0, previewCtx.canvas.width, previewCtx.canvas.height);
-  
   let wsize = getWindowSize();
   if(Math.floor((wsize.height * 0.9) / HEIGHT) < Math.floor((wsize.width * 0.9) / (1.5*WIDTH))){
     size = Math.floor((wsize.height * 0.9) / HEIGHT);
   } else {
     size = Math.floor((wsize.width * 0.9) / (1.5*WIDTH));
   }
-  canvas.style.height = size * HEIGHT + "px";
   canvas.style.width = size * WIDTH + "px";
+  canvas.style.height = size * HEIGHT + "px";
 
   var modals = document.getElementsByClassName('modal-content');
   for(i = 0; i < modals.length; i++) {
@@ -69,11 +58,21 @@ function resize() {
   restart_icon.style.left = (wsize.width / 2) - (WIDTH*size / 2) - (wsize.height / 20) -10 + "px";
   restart_icon.style.marginTop = (wsize.height) * 2 / 20 + 10 + "px";
 
-  bufferImages(ctx, size);
-  bufferImages(previewCtx, size);
-
-  ctx.putImageData(ctxImgData, 0, 0);
-  previewCtx.putImageData(previewImgData, 0, 0);
+  try{
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    sqr.render(ctx);
+    player.render(ctx, sqr);
+    render_preview(previewCtx, PREVIEWS);
+    if(paused){
+      height = Math.floor(ctx.canvas.height / 6);
+      width = Math.floor(ctx.canvas.height / 24);
+  
+      ctx.fillStyle = "#FFFFFF"
+      ctx.fRect(ctx.canvas.width / 2 - 1.5*width, ctx.canvas.height / 2 - 0.5*height, width, height)
+      ctx.fRect(ctx.canvas.width / 2 + 0.5*width, ctx.canvas.height / 2 - 0.5*height, width, height)
+    }
+  } catch {
+  }
 }
 window.addEventListener('resize', resize);
 resize();
@@ -327,7 +326,7 @@ game_mode_select.addEventListener("change", updateMenu);
 function submitSettings(){
   loadStyle(style_select.options[style_select.selectedIndex].text);
   inGame = true;
-
+  
   LOCK_DELAY = Math.max(parseInt(lock_delay_input.value), 0);
   MAX_LOCK_RESETS = Math.max(parseInt(max_lock_resets_input.value), 0);
   AUTO_REPEAT_RATE = Math.max(parseInt(auto_repeat_delay_input.value), 0);
@@ -336,8 +335,8 @@ function submitSettings(){
   SOUND_EFFECTS = sound_effects_input.checked;
   SCREEN_SHAKE = screen_shake_input.checked;
   GHOST = ghost_piece_input.checked;
-
-
+  
+  pushCookies();
   unpause(ctx, sqr);
   settings.style.display = "none";
 }

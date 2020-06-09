@@ -131,7 +131,7 @@ const STYLES = {
         "blockskin" : "b9.png",
         "theme" : "theme_classic.mp3",
         "fieldbg" : "fieldbg.png",
-        "font" : "font_bw_bold_inv.png",
+        "font" : "font.png",
     },
     "Default" : {
         "blockskin" : "b1.png",

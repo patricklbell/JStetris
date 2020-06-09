@@ -81,7 +81,7 @@ function fRect(x,y,w,h){
 }
 
 function drawTile(x, y, n, s=size){
-    this.drawImage(this.offScreenCanvas, n*size, 0, size, size, x, y, s, s);
+    this.drawImage(tileSheet, 32*(2+n), 0, 32, 32, x, y, s, s);
 }
 
 ctx.sRect = sRect;
@@ -95,18 +95,18 @@ previewCtx.drawText = drawText;
 
 
 function drawText(text, x, y, style=0, s=size){
-    let offsetX = 0; let offsetY = size + 3*size*style;
+    let offsetX = 0; let offsetY = 3*16*style;
     for (let i = 0; i < text.length; i++) {
-        let sx = ((text.charCodeAt(i) - 32) % 32) * size + offsetX;
-        let sy = Math.floor((text.charCodeAt(i) - 32) / 32) * size + offsetY;
-        this.drawImage(this.offScreenCanvas, sx, sy, size, size, x+i*s, y, s, s);
+        let sx = ((text.charCodeAt(i) - 32) % 32) * 16 + offsetX;
+        let sy = Math.floor((text.charCodeAt(i) - 32) / 32) * 16 + offsetY;
+        this.drawImage(fontSheet, sx, sy, 16, 16, x+i*s, y, s, s);
     }
 }
 
 function unpause(ctx, sqr){
-    window.dispatchEvent(new Event('resize'));
     paused = true;
     
+    resize();
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     sqr.render(ctx);
     player.render(ctx, sqr);
@@ -183,17 +183,6 @@ function startShake(coefficient) {
    shakeStartTime=Date.now();
    shakeCoefficient=coefficient;
    shakeDuration=coefficient*100;
-}
-
-function bufferImages(canvas, size){
-    canvas.offScreenCanvas = document.createElement('canvas');
-    canvas.offScreenCanvas.width = size*32;
-    canvas.offScreenCanvas.height = size + size*30;
-    let tmpCtx = canvas.offScreenCanvas.getContext("2d");
-
-    tmpCtx.clearRect(0, 0, size*32, size + size*30);
-    tmpCtx.drawImage(tileSheet, 32*2, 0, 32*7, 32, 0, 0, size*7, size);
-    tmpCtx.drawImage(fontSheet, 0, 0, 16*32, 16*30, 0, size, size*32, size*30);
 }
 
 
@@ -284,4 +273,27 @@ function determineScore(sqr, player, num_lines, b2b){
         str_result += "b2b";
     }
     return SCORE_TABLE[str_result];
+}
+
+function loadCookies(){
+  if (Cookies.get('lockDelay') !== undefined) {LOCK_DELAY = Cookies.get('lockDelay')};
+  if (Cookies.get('maxLockResets') !== undefined) {MAX_LOCK_RESETS = Cookies.get('maxLockResets')};
+  if (Cookies.get('autoRepeatDelay') !== undefined) {AUTO_REPEAT_RATE = Cookies.get('autoRepeatDelay')};
+  if (Cookies.get('delayAutoShift') !== undefined) {DELAY_AUTO_SHIFT = Cookies.get('delayAutoShift')};
+  if (Cookies.get('music') !== undefined) {MUSIC = Cookies.get('music')};
+  if (Cookies.get('soundEffect') !== undefined) {SOUND_EFFECTS = Cookies.get('soundEffect')};
+  if (Cookies.get('screenShake') !== undefined) {SCREEN_SHAKE = Cookies.get('screenShake')};
+  if (Cookies.get('ghost') !== undefined) {GHOST = Cookies.get('ghost')};
+}
+loadCookies();
+
+function pushCookies(){
+  Cookies.set("lockDelay", LOCK_DELAY);
+  Cookies.set("maxLockResets", MAX_LOCK_RESETS);
+  Cookies.set("autoRepeatDelay", AUTO_REPEAT_RATE);
+  Cookies.set("delayAutoShift", DELAY_AUTO_SHIFT);
+  Cookies.set("music", MUSIC);
+  Cookies.set("soundEffect", SOUND_EFFECTS);
+  Cookies.set("screenShake", SCREEN_SHAKE);
+  Cookies.set("ghost", GHOST);
 }

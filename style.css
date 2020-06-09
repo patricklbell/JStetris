@@ -18,6 +18,10 @@ html, body {
   width: 10vw;
 }
 
+.checkbox_container{
+    width: 80%;
+}
+
 /* Hide the browser's default checkbox */
 .checkbox_container input {
   position: absolute;
@@ -184,7 +188,7 @@ p {
 /* Modal Content/Box */
 .modal-content {
   background-color: #fefefe;
-  padding: 20px;
+  padding: 10px;
   border: 1px solid #888;
   
   margin: 0;
@@ -195,6 +199,7 @@ p {
   transform: translate(-50%, -50%);
 
   text-align: center;
+  border-radius:5%;
 }
 .button {
   background-color: #e7e7e7; 
