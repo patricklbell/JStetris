@@ -224,7 +224,7 @@ function gameloop () {
         if (t) {
           if(SOUND_EFFECTS){AUDIO["erase" + t].cloneNode().play();}    
           if(SCREEN_SHAKE) {startShake(t*0.5);}
-          if(b2b_flag){AUDIO["b2b"].cloneNode().play();}
+          if(b2b_flag && SOUND_EFFECTS){AUDIO["b2b"].cloneNode().play();}
           b2b_flag = true;
         }
 
