@@ -172,10 +172,31 @@ function endGame(){
     if(SOUND_EFFECTS){AUDIO["died"].cloneNode().play();}
     AUDIO["theme"].pause();
     AUDIO["theme"].currrenTime = 0;
-    gameover.style.display = 'block';
-    inGame = false;
-    paused = true;
-    nextShape, holding = false, held, switched = false;
+    inGame = false, paused = true, nextShape, holding = false, held, switched = false;
+    
+    if(GAMERULES["results"]){
+        results.style.display = "block";
+        var results_queue = []
+        if(GAMERULES["resultsLevel"]){results_queue.push(["Level: " + currentLevel]);}
+        if(GAMERULES["resultsTimer"]){results_queue.push(["Time: " + (Math.max((now - playTimer) / 1000, 0)).toFixed(2)]);}
+        if(GAMERULES["resultsLines"]){results_queue.push(["Lines: " + sqr.linesCleared]);}
+        if(GAMERULES["resultsScore"]){results_queue.push(["Score: " + score]);}
+
+        let html = "<h3>Game Over</h3>"
+        for (let i = 0; i < results_queue.length; i++) {
+            html += `<div class="result-item"><p>`+ results_queue[i] +"</p></div>";
+        }
+        html += `<button type="button" id="results-continue" class="button">Play Again</button>`
+        results_content.innerHTML = html;
+        document.getElementById('results-continue').addEventListener("click", function (e){
+            if (e.x != 0 && e.y != 0){
+              results.style.display = 'none';
+              gameover.style.display = 'block';
+            }
+          });
+    } else {
+        gameover.style.display = 'block';
+    }
 }
 
 function loadStyle(style){

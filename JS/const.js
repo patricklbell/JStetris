@@ -18,6 +18,8 @@ var lines_dom_sprint = document.getElementById('sprint-lines');
 var settings_submit = document.getElementById('settings-submit');
 var setting_icon = document.getElementById('setting-icon');
 var settings = document.getElementById('settings');
+var results = document.getElementById('results');
+var results_content = document.getElementById('results-content');
 
 var lock_delay_input = document.getElementById('lock-delay');
 var max_lock_resets_input = document.getElementById('max-lock-resets');
@@ -202,6 +204,11 @@ const GAME_MODES = {
         "lineLimitValue" : 0,
         "score" : true,
         "scoreShow" : true,
+        "results" : true,
+        "resultsLevel" : true,
+        "resultsTimer" : true,
+        "resultsLines" : true,
+        "resultsScore" : true,
     },
     "sprint" : {
         "levels" : false,
@@ -214,6 +221,11 @@ const GAME_MODES = {
         "lineLimitValue" : 40,
         "score" : false,
         "scoreShow" : false,
+        "results" : true,
+        "resultsLevel" : false,
+        "resultsTimer" : true,
+        "resultsLines" : false,
+        "resultsScore" : true,
     },
     "ultra" : {
         "levels" : false,
@@ -226,6 +238,11 @@ const GAME_MODES = {
         "lineLimitValue" : 0,
         "score" : true,
         "scoreShow" : true,
+        "results" : true,
+        "resultsLevel" : false,
+        "resultsTimer" : false,
+        "resultsLines" : true,
+        "resultsScore" : true,
     },
 }
 // Default value

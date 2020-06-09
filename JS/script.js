@@ -51,6 +51,7 @@ function resize() {
   bufferImages(previewCtx, size);
 }
 window.addEventListener('resize', resize);
+resize();
 
 function render_preview(ctx, numPreviews){
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -313,12 +314,11 @@ loadStyle(DEFAULT_STYLE);
 document.getElementById('button').addEventListener("click", function (e) {
   if (e.x != 0 && e.y != 0){
     gameover.style.display = 'none';
-    message.innerHTML = "Game Over";
     
     GAMERULES["countdownValue"] = Math.min(time_dom_ultra.value,5)*60*1000
     
     if (GAMERULES["levels"]){
-      startLevel = Math.floor(level_dom_marathon.value);
+      startLevel = Math.floor(Math.max(level_dom_marathon.value, 1));
       currentLevel = startLevel;
       levelSpeed = LEVEL_SPEED_TABLE[Math.min(LEVEL_SPEED_TABLE.length - 1, currentLevel-1)];
     } else {
