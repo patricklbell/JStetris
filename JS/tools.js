@@ -175,6 +175,7 @@ function endGame(){
     gameover.style.display = 'block';
     inGame = false;
     paused = true;
+    nextShape, holding = false, held, switched = false;
 }
 
 function loadStyle(style){
