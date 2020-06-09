@@ -1,3 +1,34 @@
+var getWindowSize = (function() {
+    var docEl = document.documentElement,
+        IS_BODY_ACTING_ROOT = docEl && docEl.clientHeight === 0;
+  
+    // Used to feature test Opera returning wrong values 
+    // for documentElement.clientHeight. 
+    function isDocumentElementHeightOff () { 
+        var d = document,
+            div = d.createElement('div');
+        div.style.height = "2500px";
+        d.body.insertBefore(div, d.body.firstChild);
+        var r = d.documentElement.clientHeight > 2400;
+        d.body.removeChild(div);
+        return r;
+    }
+  
+    if (typeof document.clientWidth == "number") {
+       return function () {
+         return { width: document.clientWidth, height: document.clientHeight };
+       };
+    } else if (IS_BODY_ACTING_ROOT || isDocumentElementHeightOff()) {
+        var b = document.body;
+        return function () {
+          return { width: b.clientWidth, height: b.clientHeight };
+        };
+    } else {
+        return function () {
+          return { width: docEl.clientWidth, height: docEl.clientHeight };
+        };
+    }
+  })();
 
 function shuffle(array) {
     var currentIndex = array.length, temporaryValue, randomIndex;
@@ -79,6 +110,8 @@ function unpause(ctx, sqr){
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     sqr.render(ctx);
     player.render(ctx, sqr);
+    render_preview(previewCtx, PREVIEWS);
+    var imgData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
     
     var i = 4;
     if(SOUND_EFFECTS){AUDIO["countdown"].cloneNode().play();}
@@ -86,9 +119,7 @@ function unpause(ctx, sqr){
     ctx.drawText("3", ctx.canvas.width / 2 - COUNTDOWN_FONT_SIZE/2, ctx.canvas.height / 2 - COUNTDOWN_FONT_SIZE/2, 2, COUNTDOWN_FONT_SIZE); 
     unpause_interval = setInterval(function (){
         i--;
-        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        sqr.render(ctx);
-        player.render(ctx, sqr);
+        ctx.putImageData(imgData, 0, 0, 0, 0, ctx.canvas.width, ctx.canvas.height);
 
         if (i === 3) {
             if(SOUND_EFFECTS && i != 0){AUDIO["countdown"].cloneNode().play();}

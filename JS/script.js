@@ -25,10 +25,32 @@ var player, sqr, randomGenerator = new randomBag(SHAPES.length);
 
 
 function resize() {
-  size = Math.floor((window.innerHeight * 0.9) / HEIGHT);
+  try {
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    sqr.render(ctx);
+    player.render(ctx, sqr);
+    render_preview(previewCtx, PREVIEWS);
+  } catch (error) {
+    
+  }
+  var ctxImgData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+  var previewImgData = previewCtx.getImageData(0, 0, previewCtx.canvas.width, previewCtx.canvas.height);
+  
+  let wsize = getWindowSize();
+  if(Math.floor((wsize.height * 0.9) / HEIGHT) < Math.floor((wsize.width * 0.9) / (1.5*WIDTH))){
+    size = Math.floor((wsize.height * 0.9) / HEIGHT);
+  } else {
+    size = Math.floor((wsize.width * 0.9) / (1.5*WIDTH));
+  }
   canvas.style.height = size * HEIGHT + "px";
   canvas.style.width = size * WIDTH + "px";
-  
+
+  var modals = document.getElementsByClassName('modal-content');
+  for(i = 0; i < modals.length; i++) {
+    modals[i].style.width = size * (WIDTH + 1) + "px";
+    // modals[i].style.height = size * (HEIGHT - 2) + "px";
+  }
+
   size *= window.devicePixelRatio;
 
   canvas.width = Math.floor(size * WIDTH);
@@ -36,19 +58,22 @@ function resize() {
   fieldbg.width = Math.floor(size * WIDTH);
   fieldbg.height = Math.floor(size * HEIGHT);
   
-  previewCanvas.style.marginLeft = window.innerWidth / 2 + canvas.width / 2 + 10 + "px";
+  previewCanvas.style.marginLeft = wsize.width / 2 + canvas.width / 2 + 10 + "px";
   previewCanvas.style.height = size*HEIGHT + "px";
   previewCanvas.style.width = size*WIDTH + "px";
   previewCanvas.width = size*WIDTH;
   previewCanvas.height = size*HEIGHT;
 
-  setting_icon.style.left = (window.innerWidth / 2) - (WIDTH*size / 2) - (window.innerHeight / 20) -10 + "px";
-  setting_icon.style.marginTop = (window.innerHeight) / 20 + "px";
-  restart_icon.style.left = (window.innerWidth / 2) - (WIDTH*size / 2) - (window.innerHeight / 20) -10 + "px";
-  restart_icon.style.marginTop = (window.innerHeight) * 2 / 20 + 10 + "px";
+  setting_icon.style.left = (wsize.width / 2) - (WIDTH*size / 2) - (wsize.height / 20) -10 + "px";
+  setting_icon.style.marginTop = (wsize.height) / 20 + "px";
+  restart_icon.style.left = (wsize.width / 2) - (WIDTH*size / 2) - (wsize.height / 20) -10 + "px";
+  restart_icon.style.marginTop = (wsize.height) * 2 / 20 + 10 + "px";
 
   bufferImages(ctx, size);
   bufferImages(previewCtx, size);
+
+  ctx.putImageData(ctxImgData, 0, 0);
+  previewCtx.putImageData(previewImgData, 0, 0);
 }
 window.addEventListener('resize', resize);
 resize();
