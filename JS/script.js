@@ -26,21 +26,15 @@ var player, sqr, randomGenerator = new randomBag(SHAPES.length);
 
 function resize() {
   let wsize = getWindowSize();
-  if(Math.floor((wsize.height * 0.9) / HEIGHT) < Math.floor((wsize.width * 0.9) / (1.5*WIDTH))){
-    size = Math.floor((wsize.height * 0.9) / HEIGHT);
-  } else {
-    size = Math.floor((wsize.width * 0.9) / (1.5*WIDTH));
-  }
+  size = Math.floor((wsize.height * 0.9) / HEIGHT);
+  
   canvas.style.width = size * WIDTH + "px";
   canvas.style.height = size * HEIGHT + "px";
 
   var modals = document.getElementsByClassName('modal-content');
   for(i = 0; i < modals.length; i++) {
     modals[i].style.width = size * (WIDTH + 1) + "px";
-    // modals[i].style.height = size * (HEIGHT - 2) + "px";
   }
-
-  size *= window.devicePixelRatio;
 
   canvas.width = Math.floor(size * WIDTH);
   canvas.height = Math.floor(size * HEIGHT);
@@ -161,15 +155,15 @@ function init () {
   gameloop();
 }
 
-var stats = new Stats();
-stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
-document.body.appendChild( stats.dom );
+// var stats = new Stats();
+// stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+// document.body.appendChild( stats.dom );
 
 
 // game code
 
 function gameloop () {
-  stats.begin();
+  // stats.begin();
   id = window.requestAnimationFrame(gameloop);
   
   now = Date.now();
@@ -272,7 +266,7 @@ function gameloop () {
     keyPressed = 0;
   }
 
-  stats.end();
+  // stats.end();
 }
 
 function keyDownHandler(event) {
