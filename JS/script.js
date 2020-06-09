@@ -252,30 +252,33 @@ function gameloop () {
 }
 
 function keyDownHandler(event) {
-  if(event.code !== keyPressed && keyPressed !== 0) {
-    lastHandledKeyBuffer = AUTO_REPEAT_RATE + 1;
-    keyBuffer.push(event.code);
-  } else {
+  if(event.code !== keyPressed){
     shiftDelayBuffer = 0;
+    // lastHandledKeyBuffer = AUTO_REPEAT_RATE + 1;
+    if (keyPressed === 0) {shiftDelayBuffer = 0;}
+    else {
+      if(keyBuffer.indexOf(keyPressed) === -1){
+        keyBuffer.unshift(keyPressed);
+      }
+    }
+
+    keyPressed = event.code;
   }
-  keyPressed = event.code;
-  console.log(keyPressed, keyBuffer);
 }
 function keyUpHandler(event) {
   if(event.code === keyPressed) {
-      if(keyBuffer.length == 0 || keyBuffer[0] === event.code){
-        keyPressed = 0;
-      } else {
-        keyPressed = keyBuffer[0];
-      }
+    if(keyBuffer.length == 0 || keyBuffer[0] === event.code){
+      keyPressed = 0;    
+    } else {
+      keyPressed = keyBuffer[0];
+    }
   }
-  
-  let index = keyBuffer.indexOf(event.code);
+
+  let index = keyBuffer.indexOf(event.code)
   while(index !== -1){
     keyBuffer.splice(index, 1);
     index = keyBuffer.indexOf(event.code)
   }
-  console.log("Released", keyPressed, keyBuffer);
 }
 
 document.addEventListener('keydown', keyDownHandler, false);
