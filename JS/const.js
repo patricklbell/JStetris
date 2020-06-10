@@ -35,9 +35,9 @@ var style_select = document.getElementById("style-select")
 var ctx = canvas.getContext('2d');
 var previewCtx = previewCanvas.getContext('2d');
 var HEIGHT = 20, WIDTH = 10, GHOST = true, LOCK_DELAY = 500, MAX_LOCK_RESETS = 15;
-var PREVIEWS = 6, SECOND_PREVIEW_SCALE_DOWN = 0.5, HOLD_RENDER_SCALE = 0.75;
+var PREVIEWS = 5, SECOND_PREVIEW_SCALE_DOWN = 0.5, HOLD_RENDER_SCALE = 0.75;
 var AUTO_REPEAT_RATE = 25, DELAY_AUTO_SHIFT = 125, LEVEL_LENGTH_LINES = 10;
-var COUNTDOWN_FONT_SIZE = 35, PREVIEW_FONT_SIZE = 1/40, PREVEIW_FONT_GAP = 2/100, PREVIEW_SECTION_GAP = 2/100;
+var COUNTDOWN_FONT_SIZE = 1/20, PREVIEW_FONT_SIZE = 1/40, PREVEIW_FONT_GAP = 2/100, PREVIEW_SECTION_GAP = 2/100;
 var SCREEN_SHAKE = true, MUSIC = true, SOUND_EFFECTS = true;
 
 var LEVEL_SPEED_TABLE = [1000.00, 793, 617.80, 472.73, 355.20, 262.00, 189.68, 134.73, 93.88, 64.15, 42.98, 28.22, 18.15, 11.44, 7.06, 
@@ -122,7 +122,7 @@ const STYLES = {
         "blockskin" : "b9.png",
         "theme" : "theme_classic.mp3",
         "fieldbg" : "fieldbg.png",
-        "font" : "font.png",
+        "font" : "font_bw.png",
     },
     "Default" : {
         "blockskin" : "b1.png",

@@ -38,18 +38,20 @@ function resize() {
 
   canvas.width = Math.floor(size * WIDTH);
   canvas.height = Math.floor(size * HEIGHT);
+  previewCanvas.style.height = size*HEIGHT + "px";
+  previewCanvas.style.width = size*4+ "px";
+  previewCanvas.width = size*4;
+  previewCanvas.height = size*HEIGHT;
   fieldbg.width = Math.floor(size * WIDTH);
   fieldbg.height = Math.floor(size * HEIGHT);
   
-  previewCanvas.style.marginLeft = wsize.width / 2 + canvas.width / 2 + 10 + "px";
-  previewCanvas.style.height = size*HEIGHT + "px";
-  previewCanvas.style.width = size*WIDTH + "px";
-  previewCanvas.width = size*WIDTH;
-  previewCanvas.height = size*HEIGHT;
-
-  setting_icon.style.left = (wsize.width / 2) - (WIDTH*size / 2) - (wsize.height / 20) -10 + "px";
+  canvas.style.marginLeft = (wsize.width - canvas.width - previewCanvas.width) / 2 + "px";
+  fieldbg.style.marginLeft = (wsize.width - canvas.width - previewCanvas.width) / 2 + "px";
+  setting_icon.style.left = (wsize.width - canvas.width - previewCanvas.width) / 2 -50 + "px";
+  restart_icon.style.left = (wsize.width - canvas.width - previewCanvas.width) / 2 -50 + "px";
+  previewCanvas.style.marginLeft = (wsize.width - canvas.width - previewCanvas.width) / 2 + canvas.width + "px";
+  
   setting_icon.style.marginTop = (wsize.height) / 20 + "px";
-  restart_icon.style.left = (wsize.width / 2) - (WIDTH*size / 2) - (wsize.height / 20) -10 + "px";
   restart_icon.style.marginTop = (wsize.height) * 2 / 20 + 10 + "px";
 
   try{
@@ -72,7 +74,7 @@ window.addEventListener('resize', resize);
 resize();
 
 function render_preview(ctx, numPreviews){
-  
+  xOffset = 10;
   style = 0
   
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -80,14 +82,14 @@ function render_preview(ctx, numPreviews){
   let font_gap = Math.floor(ctx.canvas.height*PREVEIW_FONT_GAP);
   let section_gap = Math.floor(ctx.canvas.height*PREVIEW_SECTION_GAP);
   
-  ctx.drawText("NEXT", 0, 0, 0, font_size);
+  ctx.drawText("NEXT", xOffset, font_gap, 0, font_size);
   previews = randomGenerator.getList();
   gap = font_size+font_gap;
   let s = 1;
   for (let preview = 0; preview < numPreviews; preview++) {
-    renderingShape = SHAPES[previews[preview]];
+    let renderingShape = SHAPES[previews[preview]];
     for (let i = 1; i < renderingShape.length; i++) {
-      ctx.drawTile(renderingShape[i][0] * size*s, renderingShape[i][1] * size*s + gap, previews[preview], size*s);
+      ctx.drawTile(renderingShape[i][0] * size*s + xOffset, renderingShape[i][1] * size*s + gap, previews[preview], size*s);
     }
     gap += 3*s*size;
     s = Math.floor(size*SECOND_PREVIEW_SCALE_DOWN) / size;
@@ -119,17 +121,17 @@ function render_preview(ctx, numPreviews){
   if(GAMERULES["scoreShow"]){stats_queue.push(["SCORE", score.toString()])}
 
   for (let i = 0; i < stats_queue.length; i++) {
-    ctx.drawText(stats_queue[i][0], 0, gap+space*i, style, font_size);
-    ctx.drawText(stats_queue[i][1], 0, gap+space*i+font_size+font_gap, style, font_size);
+    ctx.drawText(stats_queue[i][0], xOffset, gap+space*i, style, font_size);
+    ctx.drawText(stats_queue[i][1], xOffset, gap+space*i+font_size+font_gap, style, font_size);
   }
 
+  ctx.drawText("HOLD", xOffset, ctx.canvas.height - (2*size*s+font_size+font_gap*2), 0, font_size);
   if(holding){
     let s = Math.floor(size*HOLD_RENDER_SCALE) / size;
-    ctx.drawText("HOLD", 0, ctx.canvas.height - (2*size*s+font_size+font_gap), 0, font_size);
     renderingShape = SHAPES[held];
     gap = ctx.canvas.height - 2*size*s;
     for (let i = 1; i < renderingShape.length; i++) {
-      ctx.drawTile(renderingShape[i][0] * size*s, renderingShape[i][1] * size*s + gap, held, size*s);
+      ctx.drawTile(renderingShape[i][0] * size*s + xOffset, renderingShape[i][1] * size*s + gap, held, size*s);
     }
   }
 }

@@ -129,7 +129,7 @@ input[type=number] {
 
 #canvas {
   padding: 0;
-  margin: auto;
+  /* margin: auto; */
   margin-top: 5vh;
   margin-bottom: 5vh;
   display: block;
@@ -138,11 +138,11 @@ input[type=number] {
   bottom: 0;
   left: 0;
   right: 0;
-  outline: black 5px solid;
+  outline: #3F3F3F 5px solid;
 }
 #canvasbg {
   padding: 0;
-  margin: auto;
+  /* margin: auto; */
   margin-top: 5vh;
   margin-bottom: 5vh;
   display: block;

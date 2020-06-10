@@ -99,13 +99,14 @@ function drawText(text, x, y, style=0, s=size){
     for (let i = 0; i < text.length; i++) {
         let sx = ((text.charCodeAt(i) - 32) % 32) * 16 + offsetX;
         let sy = Math.floor((text.charCodeAt(i) - 32) / 32) * 16 + offsetY;
-        this.drawImage(fontSheet, sx, sy, 16, 16, x+i*s, y, s, s);
+        this.drawImage(fontSheet, sx, sy, 15, 16, x+i*s, y, s, s);
     }
 }
 
 function unpause(ctx, sqr){
     paused = true;
     
+    let font_size = Math.floor(ctx.canvas.height*COUNTDOWN_FONT_SIZE)
     resize();
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     sqr.render(ctx);
@@ -116,18 +117,18 @@ function unpause(ctx, sqr){
     var i = 4;
     if(SOUND_EFFECTS){AUDIO["countdown"].cloneNode().play();}
 
-    ctx.drawText("3", ctx.canvas.width / 2 - COUNTDOWN_FONT_SIZE/2, ctx.canvas.height / 2 - COUNTDOWN_FONT_SIZE/2, 2, COUNTDOWN_FONT_SIZE); 
+    ctx.drawText("3", ctx.canvas.width / 2 - font_size/2, ctx.canvas.height / 2 - font_size/2, 2, font_size); 
     unpause_interval = setInterval(function (){
         i--;
         ctx.putImageData(imgData, 0, 0, 0, 0, ctx.canvas.width, ctx.canvas.height);
 
         if (i === 3) {
             if(SOUND_EFFECTS){AUDIO["countdown"].cloneNode().play();}
-            ctx.drawText("2", ctx.canvas.width / 2 - COUNTDOWN_FONT_SIZE/2, ctx.canvas.height / 2 - COUNTDOWN_FONT_SIZE/2, 5, COUNTDOWN_FONT_SIZE);
+            ctx.drawText("2", ctx.canvas.width / 2 - font_size/2, ctx.canvas.height / 2 - font_size/2, 5, font_size);
         }
         if(i === 2){
             if(SOUND_EFFECTS){AUDIO["countdown"].cloneNode().play();}
-            ctx.drawText("1", ctx.canvas.width / 2 - COUNTDOWN_FONT_SIZE/2, ctx.canvas.height / 2 - COUNTDOWN_FONT_SIZE/2, 4, COUNTDOWN_FONT_SIZE);
+            ctx.drawText("1", ctx.canvas.width / 2 - font_size/2, ctx.canvas.height / 2 - font_size/2, 4, font_size);
         }
         else if(i === 1){ 
             if(MUSIC && inGame) {AUDIO["theme"].play()};
