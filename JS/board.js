@@ -1,9 +1,11 @@
 
-  class Squares {
+  'use strict';
+  class Board {
     constructor () {
       this.array = Array(HEIGHT * WIDTH);
       this.array.fill(false)
       this.linesCleared = 0;
+      this.tetriminoes = 0;
     }
     render (ctx) {
       for (var i = 0; i < this.array.length; i++) {

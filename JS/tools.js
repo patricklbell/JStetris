@@ -1,3 +1,5 @@
+'use strict';
+
 var getWindowSize = (function() {
     var docEl = document.documentElement,
         IS_BODY_ACTING_ROOT = docEl && docEl.clientHeight === 0;
@@ -103,16 +105,17 @@ function drawText(text, x, y, style=0, s=size){
     }
 }
 
-function unpause(ctx, sqr){
+function unpause(ctx){
     paused = true;
     
-    let font_size = Math.floor(ctx.canvas.height*COUNTDOWN_FONT_SIZE)
+    let font_size = Math.floor(ctx.canvas.height*COUNTDOWN_FONT_SIZE);
+
     resize();
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    sqr.render(ctx);
-    player.render(ctx, sqr);
+    gamestate["board"].render(ctx);
+    gamestate["player"].render(ctx, gamestate["board"]);
     render_preview(previewCtx, PREVIEWS);
-    var imgData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+    // var imgData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
     
     var i = 4;
     if(SOUND_EFFECTS){AUDIO["countdown"].cloneNode().play();}
@@ -120,7 +123,11 @@ function unpause(ctx, sqr){
     ctx.drawText("3", ctx.canvas.width / 2 - font_size/2, ctx.canvas.height / 2 - font_size/2, 2, font_size); 
     unpause_interval = setInterval(function (){
         i--;
-        ctx.putImageData(imgData, 0, 0, 0, 0, ctx.canvas.width, ctx.canvas.height);
+        resize();
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        gamestate["board"].render(ctx);
+        gamestate["player"].render(ctx, gamestate["board"]);
+        render_preview(previewCtx, PREVIEWS);
 
         if (i === 3) {
             if(SOUND_EFFECTS){AUDIO["countdown"].cloneNode().play();}
@@ -143,12 +150,16 @@ function unpause(ctx, sqr){
 
 function pause(ctx){
     clearInterval(unpause_interval);
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    gamestate["board"].render(ctx);
+    gamestate["player"].render(ctx, gamestate["board"]);
+    render_preview(previewCtx, PREVIEWS);
     unpause_interval = false;
 
     AUDIO["theme"].pause();
     if(SOUND_EFFECTS){AUDIO["pause"].cloneNode().play();}
-    height = Math.floor(ctx.canvas.height / 6);
-    width = Math.floor(ctx.canvas.height / 24);
+    let height = Math.floor(ctx.canvas.height / 6);
+    let width = Math.floor(ctx.canvas.height / 24);
 
     ctx.fillStyle = "#FFFFFF"
     ctx.fRect(ctx.canvas.width / 2 - 1.5*width, ctx.canvas.height / 2 - 0.5*height, width, height)
@@ -186,29 +197,64 @@ function startShake(coefficient) {
    shakeDuration=coefficient*100;
 }
 
+function msToTime(millisec) {
+    var seconds = (millisec / 1000).toFixed(0);
+    var minutes = Math.floor(seconds / 60);
+    var hours = "";
+    if (minutes > 59) {
+        hours = Math.floor(minutes / 60);
+        hours = (hours >= 10) ? hours : "0" + hours;
+        minutes = minutes - (hours * 60);
+        minutes = (minutes >= 10) ? minutes : "0" + minutes;
+    }
+
+    seconds = Math.floor(seconds % 60);
+    seconds = (seconds >= 10) ? seconds : "0" + seconds;
+    if (hours != "") {
+        return hours + ":" + minutes + ":" + seconds;
+    }
+    return minutes + ":" + seconds;
+}
 
 function endGame(){
     if(SOUND_EFFECTS){AUDIO["died"].cloneNode().play();}
     AUDIO["theme"].pause();
     AUDIO["theme"].currrenTime = 0;
-    inGame = false, paused = true, nextShape, holding = false, held, switched = false;
+    inGame = false, paused = true;
     
     if(GAMERULES["results"]){
         results.style.display = "block";
-        var results_queue = []
-        if(GAMERULES["resultsLevel"]){results_queue.push(["Level: " + currentLevel]);}
-        if(GAMERULES["resultsTimer"]){results_queue.push(["Time: " + (Math.max((now - playTimer) / 1000, 0)).toFixed(2)]);}
-        if(GAMERULES["resultsLines"]){results_queue.push(["Lines: " + sqr.linesCleared]);}
-        if(GAMERULES["resultsScore"]){results_queue.push(["Score: " + score]);}
+        var results_queue = [];
+        let time = Math.max(now - gamestate["playTimer"], 0.00000001);
+        if(GAMERULES["resultsLevel"]){results_queue.push(["Level: " + gamestate["currentLevel"]]);}
+        if(GAMERULES["resultsTimer"]){results_queue.push(["Time: " + msToTime(time)]);}
+        if(GAMERULES["resultsLines"]){results_queue.push(["Lines: " + gamestate["board"].linesCleared]);}
+        if(GAMERULES["resultsScore"]){results_queue.push(["Score: " + gamestate["score"]]);}
+        if(GAMERULES["resultsTPM"]){results_queue.push(["Tetriminoes per minute: " + (gamestate["board"].tetriminoes / (time / 60000)).toFixed(1)]);}
+        if(GAMERULES["resultsLPM"]){results_queue.push(["Lines per minute: " + (gamestate["board"].linesCleared / (time / 60000)).toFixed(1)]);}
         
         let html = "<h3>Game Over</h3>"
         for (let i = 0; i < results_queue.length; i++) {
             html += `<div class="result-item"><p>`+ results_queue[i] +"</p></div>";
         }
+        if(BUFFER_REWIND){
+            html += `<button type="button" id="results-rewind" class="button">Rewind `+REWIND_LENGTH+` moves</button>`
+            document.getElementById('results-rewind').addEventListener("click", function(e){
+                if (e.x != 0 && e.y != 0){
+                    resize();
+                    unpause(ctx);
+                    inGame = true;
+                    gamestate = gamestate_buffer[0];
+                    gameloop();
+                    results.style.display = 'none';
+                }
+            });
+        }
         html += `<button type="button" id="results-continue" class="button">Play Again</button>`
         results_content.innerHTML = html;
         document.getElementById('results-continue').addEventListener("click", function (e){
             if (e.x != 0 && e.y != 0){
+                gamestate_buffer = [];
                 results.style.display = 'none';
                 gameover.style.display = 'block';
             }
@@ -229,7 +275,7 @@ function loadStyle(style){
     AUDIO["theme"].loop = true;
 }
 
-function determineScore(sqr, player, num_lines, b2b){
+function determineScore(board, player, num_lines, b2b){
     var str_result = "";
 
     // Determine tspin and tspin mini
@@ -237,11 +283,11 @@ function determineScore(sqr, player, num_lines, b2b){
         let centerX = player.piece[2][0] + player.pos[0]
         let centerY = player.piece[2][1] + player.pos[1]
 
-        diagonalsFilled = 0;
+        let diagonalsFilled = 0;
         for (let i = -1; i < 2; i+=2) {
             for (let j = -1; j < 2; j+=2) {
-                if(!(sqr.array[((centerY+i) * WIDTH) + centerX+j] === false) ||
-                (sqr.array[((centerY+i) * WIDTH) + centerX+j] === undefined)){
+                if(!(board.array[((centerY+i) * WIDTH) + centerX+j] === false) ||
+                (board.array[((centerY+i) * WIDTH) + centerX+j] === undefined)){
                     diagonalsFilled += 1;
                 }
             }
@@ -255,14 +301,14 @@ function determineScore(sqr, player, num_lines, b2b){
             let wing2X = player.piece[4][0] + player.pos[0]
             let wing2Y = player.piece[4][1] + player.pos[1]
             if( // If their is a hole behind
-                !(sqr.array[((centerY+tipY) * WIDTH) + centerX+tipX] === false ||
-                sqr.array[((centerY+tipY) * WIDTH) + centerX+tipX] === undefined) ||
+                !(board.array[((centerY+tipY) * WIDTH) + centerX+tipX] === false ||
+                board.array[((centerY+tipY) * WIDTH) + centerX+tipX] === undefined) ||
                 // If the points beside tip are occupied
                 (
-                    !(sqr.array[((wing1Y+tipY) * WIDTH) + wing1X+tipX] === false ||
-                    sqr.array[((wing1Y+tipY) * WIDTH) + wing1X+tipX] === undefined) + 
-                    !(sqr.array[((wing2Y+tipY) * WIDTH) + wing2X+tipX] === false ||
-                    sqr.array[((wing2Y+tipY) * WIDTH) + wing2X+tipX] === undefined) === 1
+                    !(board.array[((wing1Y+tipY) * WIDTH) + wing1X+tipX] === false ||
+                    board.array[((wing1Y+tipY) * WIDTH) + wing1X+tipX] === undefined) + 
+                    !(board.array[((wing2Y+tipY) * WIDTH) + wing2X+tipX] === false ||
+                    board.array[((wing2Y+tipY) * WIDTH) + wing2X+tipX] === undefined) === 1
                 )
             ){
                 str_result = "tspinmini";
@@ -273,12 +319,14 @@ function determineScore(sqr, player, num_lines, b2b){
     if (b2b) {
         str_result += "b2b";
     }
-    return SCORE_TABLE[str_result];
+    if(SCORE_TABLE[str_result] !== undefined){
+        return SCORE_TABLE[str_result];
+    }
+    return 0;
 }
 
 setting_icon.onclick = function (){
     settings.style.display = "block";
-    changingPause = false;
     inGame = false;
     pause(ctx);
 }
@@ -288,7 +336,7 @@ restart_icon.onclick = function (){
 }
 
 
-setupStyle = function() {
+function setupStyle() {
     let i = 0;
     for (var key in STYLES) {
         let opt = document.createElement('option');

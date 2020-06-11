@@ -1,36 +1,4 @@
-var canvas = document.getElementById('canvas');
-var fieldbg = document.getElementById('canvasbg');
-var previewCanvas = document.getElementById('previewCanvas');
-var unpause_interval;
-
-var tileSheet = document.getElementById('tilesheet');
-var fontSheet = document.getElementById('fontsheet');
-
-var gameover = document.getElementById('gameover');
-var message = document.getElementById('message');
-
-var game_mode_select = document.getElementById('game-mode-select');
-var game_mode_menus = document.getElementById('game-mode-menus')
-
-var time_dom_ultra = document.getElementById('ultra-time');
-var level_dom_marathon = document.getElementById('marathon-level');
-var lines_dom_sprint = document.getElementById('sprint-lines');
-
-var settings_submit = document.getElementById('settings-submit');
-var setting_icon = document.getElementById('setting-icon');
-var settings = document.getElementById('settings');
-var results = document.getElementById('results');
-var results_content = document.getElementById('results-content');
-
-var lock_delay_input = document.getElementById('lock-delay');
-var max_lock_resets_input = document.getElementById('max-lock-resets');
-var auto_repeat_delay_input = document.getElementById('auto-repeat-delay');
-var delay_auto_shift_input = document.getElementById('delay-auto-shift');
-var music_input = document.getElementById('music');
-var sound_effects_input = document.getElementById('sound-effects');
-var screen_shake_input = document.getElementById('screen-shake');
-var ghost_piece_input = document.getElementById('ghost-piece');
-var style_select = document.getElementById("style-select")
+'use strict';
 
 var ctx = canvas.getContext('2d');
 var previewCtx = previewCanvas.getContext('2d');
@@ -39,10 +7,11 @@ var PREVIEWS = 5, SECOND_PREVIEW_SCALE_DOWN = 0.5, HOLD_RENDER_SCALE = 0.75;
 var AUTO_REPEAT_RATE = 25, DELAY_AUTO_SHIFT = 125, LEVEL_LENGTH_LINES = 10;
 var COUNTDOWN_FONT_SIZE = 1/20, PREVIEW_FONT_SIZE = 1/40, PREVEIW_FONT_GAP = 2/100, PREVIEW_SECTION_GAP = 2/100;
 var SCREEN_SHAKE = true, MUSIC = true, SOUND_EFFECTS = true;
+var REWIND_LENGTH = 10, BUFFER_REWIND = false;
 
 var LEVEL_SPEED_TABLE = [1000.00, 793, 617.80, 472.73, 355.20, 262.00, 189.68, 134.73, 93.88, 64.15, 42.98, 28.22, 18.15, 11.44, 7.06, 
     5, 5, 5, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2];
-const SHAPES = [
+    const SHAPES = [
   // size of bounding square, positions * num of blocks
   [3, [0, 1], [1, 1], [2, 1], [3, 1]],
   [2, [0, 0], [0, 1], [1, 1], [2, 1]],
@@ -86,11 +55,10 @@ const SPAWN_TABLE = [
     [Math.floor(WIDTH / 2) - 2, -2],
 ];
 const NAMES = ["I", "J", "L", "O", "S", "T", "Z"];
-var COLORS = ["#FF0000FF", "#000000FF",  "#FF00FFFF", "#0000FFFF", "#00FF00FF", "#FFFF00FF", "#00FFFFFF"];
 const PREVIEW_ALPHA = 0.7;
-let LINE_CLEAR_NAMES = ["", "single", "double", "triple", "tetris"];
+var LINE_CLEAR_NAMES = ["", "single", "double", "triple", "tetris"];
 
-AUDIO = {
+var AUDIO = {
     "b2b" : new Audio('./assets/audio/b2b_continue.mp3'),
     "countdown" : new Audio('./assets/audio/countdown.mp3'),
     "died" : new Audio('./assets/audio/died.mp3'),
@@ -115,7 +83,7 @@ AUDIO = {
 }
 AUDIO["theme"].loop = true;
 
-DEFAULT_STYLE = "Default";
+var DEFAULT_STYLE = "Default";
 var STYLE = DEFAULT_STYLE;
 const STYLES = {
     "Retro" : {
@@ -179,6 +147,8 @@ const GAME_MODES = {
         "resultsTimer" : true,
         "resultsLines" : true,
         "resultsScore" : true,
+        "resultsTPM" : true,
+        "resultsLPM" : true,
     },
     "sprint" : {
         "levels" : false,
@@ -196,6 +166,8 @@ const GAME_MODES = {
         "resultsTimer" : true,
         "resultsLines" : false,
         "resultsScore" : true,
+        "resultsTPM" : true,
+        "resultsLPM" : true,
     },
     "ultra" : {
         "levels" : false,
@@ -213,6 +185,8 @@ const GAME_MODES = {
         "resultsTimer" : false,
         "resultsLines" : true,
         "resultsScore" : true,
+        "resultsTPM" : true,
+        "resultsLPM" : true,
     },
 }
 // Default value
@@ -220,6 +194,7 @@ var GAMERULES = {...GAME_MODES["marathon"]};
 
 const SCORE_TABLE = {
     "" : 0,
+    "b2b" : 0,
     "hardrop" : 2,
     "softdrop" : 1,
     "single" : 100,
@@ -249,3 +224,22 @@ const SCORE_TABLE = {
     "tspintripleb2b" : 2400,
     "tspintetrisb2b" : 2400,
 };
+
+
+var DEFAULT_GAMESTATE = {
+    "nextShape" : 0,
+    "holding" : false,
+    "held" : false,
+    "switched" : false,
+    "b2b" : false,
+    "startLevel" : 1,
+    "currentLevel" : 1,
+    "levelSpeed" : LEVEL_SPEED_TABLE[0], 
+    "score" : 0,
+    "player" : undefined,
+    "board" : undefined,
+    "pieceGenerator" : undefined,
+    "playTimer" : undefined,
+};
+
+var gamestate = Object.assign({}, DEFAULT_GAMESTATE);

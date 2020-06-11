@@ -1,4 +1,4 @@
-
+'use strict';
 class Player {
     constructor (choice) {
       this.type = choice;
@@ -10,11 +10,11 @@ class Player {
       this.pos = SPAWN_TABLE[choice];
       this.pos_chn = this.pos.slice();
       this.lastAction = "";
-      switched = false;
+      gamestate["switched"] = false;
     }
-    render (ctx, sqr) {
+    render (ctx, board) {
       if(GHOST){
-        this.drop(sqr);
+        this.drop(board);
         ctx.globalAlpha = PREVIEW_ALPHA;
         for (var i = 1; i < this.piece_chn.length; i++) {
           ctx.drawTile((this.piece_chn[i][0] + this.pos_chn[0]) * size, (this.piece_chn[i][1] + this.pos_chn[1]) * size, this.type);
@@ -43,7 +43,7 @@ class Player {
           return true;
         } else {
           // test collision with other objects
-          for (var j = 0; j < sqr.array.length; j++) {
+          for (var j = 0; j < gamestate["board"].array.length; j++) {
             if (!squares.array[j] === false) {
               if ((j % WIDTH === x) && (Math.floor(j / WIDTH) === y)) {
                 return true;
@@ -63,6 +63,7 @@ class Player {
         squares.set(this.piece[i][0] + this.pos[0], this.piece[i][1] + this.pos[1], this.type);
       }
       // Tests whether any blocks were inside play, locked out
+      delete this;
       return flag;
     }
     apply () {
@@ -102,17 +103,17 @@ class Player {
       }
       this.rot_chn = (this.rot + 3) % 4
     }
-    drop (sqr){
-      for (let i = 0; i < (HEIGHT - player.pos[1]); i++) {
+    drop (board){
+      for (let i = 0; i < (HEIGHT - this.pos[1]); i++) {
         this.move(0, i);
-        if (this.testCollision(sqr) === true) {
+        if (this.testCollision(board) === true) {
           this.move(0, i-1);
           return i-1;
         }
       }
       return 0;
     }
-    testKicksClockwise (sqr){
+    testKicksClockwise (board){
       var kicks;
       if(this.name == "I"){
         kicks = IWALLKICKS_R[this.rot]
@@ -125,14 +126,14 @@ class Player {
       for (let i = 0; i < kicks.length; i++) {
         this.rotateClock();
         this.move(kicks[i][0], kicks[i][1]);
-        if (this.testCollision(sqr) === false) {
+        if (this.testCollision(board) === false) {
           return true;
         }
       }
       this.unapply();
       return false;
     }
-    testKicksAntiClockwise (sqr){
+    testKicksAntiClockwise (board){
       var kicks;
       if(this.name == "I"){
         kicks = IWALLKICKS_L[this.rot]
@@ -145,7 +146,7 @@ class Player {
       for (let i = 0; i < kicks.length; i++) {
         this.rotateAntiClock();
         this.move(kicks[i][0], kicks[i][1]);
-        if (this.testCollision(sqr) === false) {
+        if (this.testCollision(board) === false) {
           return true;
         }
       }

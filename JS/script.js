@@ -1,38 +1,29 @@
-// Globals
-
+'use strict';
 // Time
-var lastUpdate = Date.now(), now = lastUpdate, dt = 0, id, playTimer = now, countdownTimer = 0;
-
-// Misc
-var size, score = 0;
-
-// Level
-var levelSpeed = LEVEL_SPEED_TABLE[Math.min(LEVEL_SPEED_TABLE.length - 1, currentLevel-1)];
-var startLevel = 1, currentLevel = 1
+var lastUpdate = Date.now(), now = lastUpdate, dt = 0, id, size;
 
 // Key
 var lockBuffer = 0, lockDelay = false, lockResets = 0;
 var fallDelayBuffer = 0, lastHandledKeyBuffer = 0, shiftDelayBuffer = 0;
 var keyPressed = 0, keyBuffer = []; 
 
-var paused = false, inGame = false, b2b_flag = false;
+var paused = false, inGame = false;
 
-// Holds
-var nextShape, holding = false, held, switched = false;
-
-// Objects
-var player, sqr, randomGenerator = new randomBag(SHAPES.length);
-
+// Rewind buffer
+var gamestate_buffer = [];
 
 function resize() {
   let wsize = getWindowSize();
-  size = Math.floor((wsize.height * 0.9) / HEIGHT);
+  size = Math.floor(wsize.height / HEIGHT);
+  if (Math.floor(wsize.width / WIDTH) < size){
+    size = Math.floor(wsize.width / WIDTH);
+  }
   
   canvas.style.width = size * WIDTH + "px";
   canvas.style.height = size * HEIGHT + "px";
 
   var modals = document.getElementsByClassName('modal-content');
-  for(i = 0; i < modals.length; i++) {
+  for(let i = 0; i < modals.length; i++) {
     modals[i].style.width = size * (WIDTH + 1) + "px";
   }
 
@@ -56,26 +47,25 @@ function resize() {
 
   try{
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    sqr.render(ctx);
-    player.render(ctx, sqr);
+    gamestate["board"].render(ctx);
+    gamestate["player"].render(ctx, gamestate["board"]);
     render_preview(previewCtx, PREVIEWS);
-    if(paused){
-      height = Math.floor(ctx.canvas.height / 6);
-      width = Math.floor(ctx.canvas.height / 24);
+    if(paused && unpause_interval === false){
+      let height = Math.floor(ctx.canvas.height / 6);
+      let width = Math.floor(ctx.canvas.height / 24);
   
-      ctx.fillStyle = "#FFFFFF"
-      ctx.fRect(ctx.canvas.width / 2 - 1.5*width, ctx.canvas.height / 2 - 0.5*height, width, height)
-      ctx.fRect(ctx.canvas.width / 2 + 0.5*width, ctx.canvas.height / 2 - 0.5*height, width, height)
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fRect(ctx.canvas.width / 2 - 1.5*width, ctx.canvas.height / 2 - 0.5*height, width, height);
+      ctx.fRect(ctx.canvas.width / 2 + 0.5*width, ctx.canvas.height / 2 - 0.5*height, width, height);
     }
-  } catch {
-  }
+  } catch {}
 }
 window.addEventListener('resize', resize);
 resize();
 
 function render_preview(ctx, numPreviews){
-  xOffset = 10;
-  style = 0
+  let xOffset = 10;
+  let style = 0
   
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   let font_size = Math.floor(ctx.canvas.height*PREVIEW_FONT_SIZE);
@@ -83,13 +73,13 @@ function render_preview(ctx, numPreviews){
   let section_gap = Math.floor(ctx.canvas.height*PREVIEW_SECTION_GAP);
   
   ctx.drawText("NEXT", xOffset, font_gap, 0, font_size);
-  previews = randomGenerator.getList();
-  gap = font_size+font_gap;
+  let previews = gamestate["pieceGenerator"].getList();
+  let gap = font_size+font_gap;
   let s = 1;
   for (let preview = 0; preview < numPreviews; preview++) {
     let renderingShape = SHAPES[previews[preview]];
     for (let i = 1; i < renderingShape.length; i++) {
-      ctx.drawTile(renderingShape[i][0] * size*s + xOffset, renderingShape[i][1] * size*s + gap, previews[preview], size*s);
+      ctx.drawTile(renderingShape[i][0] * size*s + xOffset, renderingShape[i][1] * size*s + gap+font_gap, previews[preview], size*s);
     }
     gap += 3*s*size;
     s = Math.floor(size*SECOND_PREVIEW_SCALE_DOWN) / size;
@@ -99,39 +89,39 @@ function render_preview(ctx, numPreviews){
   let stats_queue = [];
 
   if(GAMERULES["levels"]){
-    style = currentLevel % 7;
+    style = gamestate["currentLevel"] % 7;
   }
 
-  if(sqr !== undefined && GAMERULES["showLines"]) {
-    if(GAMERULES["lineLimit"] && sqr.linesCleared > GAMERULES["lineLimitValue"] * (9/10)){style = 2;}
-    stats_queue.push(["LINES", sqr.linesCleared.toString()])
+  if(gamestate["board"] !== undefined && GAMERULES["showLines"]) {
+    if(GAMERULES["lineLimit"] && gamestate["board"].linesCleared > GAMERULES["lineLimitValue"] * (9/10)){style = 2;}
+    stats_queue.push(["LINES", gamestate["board"].linesCleared.toString()])
   }
 
   if(GAMERULES["timer"]){
-    let time = (Math.max((now - playTimer) / 1000, 0));
+    let time = (Math.max((now - gamestate["playTimer"]) / 1000, 0));
     stats_queue.push(["TIME", time.toFixed(1)]);
   }
   
   if (GAMERULES["countdown"]){
-    let timeLeft = Math.max((GAMERULES["countdownValue"] - (now - playTimer)) / 1000, 0)
+    let timeLeft = Math.max((GAMERULES["countdownValue"] - (now - gamestate["playTimer"])) / 1000, 0)
     if (timeLeft < GAMERULES["countdownValue"] / 10) {style = 2;}
     stats_queue.push(["TIME LEFT", timeLeft.toFixed(1)]);
   }
-  if(GAMERULES["showLevel"]){stats_queue.push(["LEVEL", currentLevel.toString()])}
-  if(GAMERULES["scoreShow"]){stats_queue.push(["SCORE", score.toString()])}
+  if(GAMERULES["showLevel"]){stats_queue.push(["LEVEL", gamestate["currentLevel"].toString()])}
+  if(GAMERULES["scoreShow"]){stats_queue.push(["SCORE", gamestate["score"].toString()])}
 
   for (let i = 0; i < stats_queue.length; i++) {
-    ctx.drawText(stats_queue[i][0], xOffset, gap+space*i, style, font_size);
-    ctx.drawText(stats_queue[i][1], xOffset, gap+space*i+font_size+font_gap, style, font_size);
+    ctx.drawText(stats_queue[i][0], xOffset, gap+space*i+font_gap, style, font_size);
+    ctx.drawText(stats_queue[i][1], xOffset, gap+space*i+font_size+2*font_gap, style, font_size);
   }
 
-  ctx.drawText("HOLD", xOffset, ctx.canvas.height - (2*size*s+font_size+font_gap*2), 0, font_size);
-  if(holding){
+  ctx.drawText("HOLD", xOffset, ctx.canvas.height - (2*size*s+font_gap*5), 0, font_size);
+  if(gamestate["held"]){
     let s = Math.floor(size*HOLD_RENDER_SCALE) / size;
-    renderingShape = SHAPES[held];
-    gap = ctx.canvas.height - 2*size*s;
+    let renderingShape = SHAPES[gamestate["holding"]];
+    gap = ctx.canvas.height - 2*size*s - font_gap;
     for (let i = 1; i < renderingShape.length; i++) {
-      ctx.drawTile(renderingShape[i][0] * size*s + xOffset, renderingShape[i][1] * size*s + gap, held, size*s);
+      ctx.drawTile(renderingShape[i][0] * size*s + xOffset, renderingShape[i][1] * size*s + gap, gamestate["holding"], size*s);
     }
   }
 }
@@ -145,27 +135,19 @@ for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
 }
 
 function init () {
-  score = 0
-  
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-  
-  sqr = new Squares();
-  player = new Player(randomGenerator.next());
+
+  gamestate["pieceGenerator"] = new randomBag(SHAPES.length);
+  gamestate["board"] = new Board();
+  gamestate["player"] = new Player(gamestate["pieceGenerator"].next());
+  gamestate["playTimer"] = now;
   resize();
-  unpause(ctx, sqr);
+  unpause(ctx);
   
   gameloop();
 }
 
-// var stats = new Stats();
-// stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
-// document.body.appendChild( stats.dom );
-
-
-// game code
-
 function gameloop () {
-  // stats.begin();
   id = window.requestAnimationFrame(gameloop);
   
   now = Date.now();
@@ -191,8 +173,8 @@ function gameloop () {
     
     preShake();
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    sqr.render(ctx);
-    player.render(ctx, sqr);
+    gamestate["board"].render(ctx);
+    gamestate["player"].render(ctx, gamestate["board"]);
     render_preview(previewCtx, PREVIEWS);
     postShake();
     
@@ -200,8 +182,8 @@ function gameloop () {
     
     if (lockDelay) {
       // Check whether we are still locked
-      player.move(0, 1);
-      if (player.testCollision(sqr) !== true) {
+      gamestate["player"].move(0, 1);
+      if (gamestate["player"].testCollision(gamestate["board"]) !== true) {
         lockDelay = false;
       }
       
@@ -209,27 +191,43 @@ function gameloop () {
         lockResets = 0;
         lockBuffer = 0;
         
-        const playerCopy = Object.assign({}, player);
-        if(player.delete(sqr)){
+        const playerCopy = Object.assign({}, gamestate["player"]);
+        if(gamestate["player"].delete(gamestate["board"])){
           endGame();
         }
-        player = new Player(randomGenerator.next());
         
-        let t = sqr.fixFilledLines();
-        if(GAMERULES["score"]) {score += determineScore(sqr, playerCopy, t, b2b_flag)*currentLevel}
+        let t = gamestate["board"].fixFilledLines();
+        if(GAMERULES["score"]) {
+          gamestate["score"] += determineScore(gamestate["board"], playerCopy, t, gamestate["b2b"])*gamestate["currentLevel"];
+        }
         if (t) {
           if(SOUND_EFFECTS){AUDIO["erase" + t].cloneNode().play();}    
           if(SCREEN_SHAKE) {startShake(t*0.5);}
-          if(b2b_flag && SOUND_EFFECTS){AUDIO["b2b"].cloneNode().play();}
-          b2b_flag = true;
+          if(gamestate["b2b"] && SOUND_EFFECTS){AUDIO["b2b"].cloneNode().play();}
+          gamestate["b2b"] = true;
+        } else {
+          gamestate["b2b"] = false;
         }
 
-        if(GAMERULES["levels"] && sqr.linesCleared + (startLevel-1)*LEVEL_LENGTH_LINES >=  currentLevel*LEVEL_LENGTH_LINES){
+        if(GAMERULES["levels"] && gamestate["board"].linesCleared + (gamestate["startLevel"]-1)*LEVEL_LENGTH_LINES >=  gamestate["currentLevel"]*LEVEL_LENGTH_LINES){
           if(SOUND_EFFECTS){AUDIO["levelup"].cloneNode().play();}
-          currentLevel++;
-          levelSpeed = LEVEL_SPEED_TABLE[Math.min(LEVEL_SPEED_TABLE.length - 1, currentLevel-1)];
+          gamestate["currentLevel"] += 1;
+          gamestate["levelSpeed"] = LEVEL_SPEED_TABLE[Math.min(LEVEL_SPEED_TABLE.length - 1, gamestate["currentLevel"]-1)];
         }
         
+        gamestate["player"] = new Player(gamestate["pieceGenerator"].next());
+        gamestate["board"].tetriminoes += 1;
+
+        if(BUFFER_REWIND){
+          if(gamestate_buffer.length >= REWIND_LENGTH){
+              gamestate_buffer.shift();
+          }
+          gamestate_buffer.push(Object.assign({}, gamestate));
+          gamestate_buffer[gamestate_buffer.length-1]["pieceGenerator"] = Object.assign({}, gamestate["pieceGenerator"]);
+          gamestate_buffer[gamestate_buffer.length-1]["board"] = Object.assign({}, gamestate["board"]);
+          gamestate_buffer[gamestate_buffer.length-1]["player"] = Object.assign({}, gamestate["player"]);
+      }
+
         lockResets = 0;
         lockBuffer = 0;
         render_preview(previewCtx, PREVIEWS);
@@ -239,36 +237,39 @@ function gameloop () {
       lockBuffer += dt;
     } 
     if (!lockDelay) {
-      player.move(0, 1);
+      gamestate["player"].move(0, 1);
       
-      if (player.testCollision(sqr) === true) {
+      if (gamestate["player"].testCollision(gamestate["board"]) === true) {
         lockDelay = true;
-        player.unapply();
-      } else if (fallDelayBuffer > levelSpeed){
-        player.apply();
-        player.lastAction = "drop";
+        gamestate["player"].unapply();
+      } else if (fallDelayBuffer > gamestate["levelSpeed"]){
+        gamestate["player"].apply();
+        gamestate["player"].lastAction = "drop";
         fallDelayBuffer = 0;
       }
     }
     
-    if((GAMERULES["lineLimit"] && sqr.linesCleared >= GAMERULES["lineLimitValue"]) || 
-       (GAMERULES["countdown"] && GAMERULES["countdownValue"] - (now - playTimer) <= 0)){
-      if(player.delete(sqr)){
+    if((GAMERULES["lineLimit"] && gamestate["board"].linesCleared >= GAMERULES["lineLimitValue"]) || 
+       (GAMERULES["countdown"] && GAMERULES["countdownValue"] - (now - gamestate["playTimer"]) <= 0)){
+      if(gamestate["player"].delete(gamestate["board"])){
         endGame();
       }
     }
   } else {
-    playTimer += dt;
+    gamestate["playTimer"] += dt;
     render_preview(previewCtx, PREVIEWS);
   }
 
   if(keyPressed === "Escape" && shiftDelayBuffer === 0 && inGame && unpause_interval === false){
-    if(paused) {unpause(ctx, sqr);}
+    if(paused) {unpause(ctx);}
     else       {pause(ctx);}
     keyPressed = 0;
   }
-
-  // stats.end();
+  else if(keyPressed === "Escape" && shiftDelayBuffer === 0 && paused){
+    clearInterval(unpause_interval);
+    pause(ctx);
+    keyPressed = 0;
+  }
 }
 
 function keyDownHandler(event) {
@@ -285,6 +286,7 @@ function keyDownHandler(event) {
     keyPressed = event.code;
   }
 }
+
 function keyUpHandler(event) {
   if(event.code === keyPressed) {
     if(keyBuffer.length == 0 || keyBuffer[0] === event.code){
@@ -333,10 +335,9 @@ function submitSettings(){
   GHOST = ghost_piece_input.checked;
   STYLE = style_select.options[style_select.selectedIndex].text
   
-
   pushCookies();
   resize();
-  unpause(ctx, sqr);
+  unpause(ctx);
   settings.style.display = "none";
 }
 settings_submit.addEventListener("click", submitSettings);
@@ -347,22 +348,17 @@ document.getElementById('button').addEventListener("click", function (e) {
     gameover.style.display = 'none';
     
     GAMERULES["countdownValue"] = Math.max(time_dom_ultra.value,0)*60*1000
-    
-    if (GAMERULES["levels"]){
-      startLevel = Math.floor(Math.max(level_dom_marathon.value, 1));
-      currentLevel = startLevel;
-      levelSpeed = LEVEL_SPEED_TABLE[Math.min(LEVEL_SPEED_TABLE.length - 1, currentLevel-1)];
-    } else {
-      startLevel = 1;
-      currentLevel = 1;
-      levelSpeed = LEVEL_SPEED_TABLE[1];
-    }
     GAMERULES["lineLimitValue"] = Math.max(Math.floor(lines_dom_sprint.value), 1);
-    
+      
+    gamestate = Object.assign({}, DEFAULT_GAMESTATE);
+    gamestate["startLevel"] = Math.floor(Math.max(level_dom_marathon.value, 1));
+    gamestate["currentLevel"] = Math.floor(Math.max(level_dom_marathon.value, 1));
+    gamestate["levelSpeed"] = LEVEL_SPEED_TABLE[Math.min(LEVEL_SPEED_TABLE.length - 1, Math.floor(Math.max(level_dom_marathon.value, 1))-1)];
+
     inGame = true;
     init();
 
-    playTimer = Date.now();
+    gamestate["playTimer"] = Date.now();
     gameloop();
   }
 });

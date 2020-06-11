@@ -1,30 +1,31 @@
+'use strict';
 function swapHold(){
-    if(!switched){
+    if(!gamestate["switched"]){
         if(SOUND_EFFECTS){AUDIO["hold"].cloneNode().play();}
-        let tmp = held;
-        held = NAMES.indexOf(player.name);
+        let tmp = gamestate["holding"];
+        gamestate["holding"] = gamestate["player"].type;
         
-        if(!holding){
-            player = new Player(randomGenerator.next());
+        if(!gamestate["held"]){
+            gamestate["player"] = new Player(gamestate["pieceGenerator"].next());
         } else {
-            player = new Player(tmp);
+            gamestate["player"] = new Player(tmp);
         }
-        switched = true;
-        holding = true;
+        gamestate["switched"] = true;
+        gamestate["held"] = true;
     } else {if(SOUND_EFFECTS){AUDIO["holdfail"].cloneNode().play();}}
 }
 function clockTurnAndKick(){
-    if(player.testKicksClockwise(sqr)){
+    if(gamestate["player"].testKicksClockwise(gamestate["board"])){
         if(SOUND_EFFECTS){AUDIO["rotate"].cloneNode().play();}
-        player.apply();
-        player.lastAction = "rotate";
+        gamestate["player"].apply();
+        gamestate["player"].lastAction = "rotate";
     } else {if(SOUND_EFFECTS){AUDIO["rotfail"].cloneNode().play();}}
 }
 function antiClockTurnAndKick(){
-    if(player.testKicksAntiClockwise(sqr)){
+    if(gamestate["player"].testKicksAntiClockwise(gamestate["board"])){
         if(SOUND_EFFECTS){AUDIO["rotate"].cloneNode().play();}
-        player.apply();
-        player.lastAction = "rotate";
+        gamestate["player"].apply();
+        gamestate["player"].lastAction = "rotate";
     } else {if(SOUND_EFFECTS){AUDIO["rotfail"].cloneNode().play();}}
 }
 
@@ -32,71 +33,89 @@ var keyBindings = {
     "KeyC" : swapHold,
     "ShiftLeft" : swapHold,
     "ArrowDown" : function(){
-        player.move(0, 1);
-        if (player.testCollision(sqr) === true) {
-            player.unapply();
+        gamestate["player"].move(0, 1);
+        if (gamestate["player"].testCollision(gamestate["board"]) === true) {
+            gamestate["player"].unapply();
         } else {
             if(SOUND_EFFECTS){AUDIO["softdrop"].cloneNode().play();}
-            player.apply();
-            score += SCORE_TABLE["softdrop"];
-            player.lastAction = "softdrop";
+            gamestate["player"].apply();
+            gamestate["score"] += SCORE_TABLE["softdrop"];
+            gamestate["player"].lastAction = "softdrop";
             render_preview(previewCtx, PREVIEWS);
 
             // Check whether piece is on ground
-            player.move(0, 1);
-            if (!lockDelay && player.testCollision(sqr) === true) {
+            gamestate["player"].move(0, 1);
+            if (!lockDelay && gamestate["player"].testCollision(gamestate["board"]) === true) {
                 lockBuffer = 0;
                 lockDelay = true;
             }
         }
     },
     "ArrowLeft" : function(){
-        player.move(-1, 0);
-        if (player.testCollision(sqr) === true) {
-            player.unapply();
+        gamestate["player"].move(-1, 0);
+        if (gamestate["player"].testCollision(gamestate["board"]) === true) {
+            gamestate["player"].unapply();
         } else {
             if(SOUND_EFFECTS){AUDIO["move"].cloneNode().play();}
-            player.apply();
-            player.lastAction = "moveLeft";
+            gamestate["player"].apply();
+            gamestate["player"].lastAction = "moveLeft";
         }
     },
     "ArrowRight" : function(){
-        player.move(1, 0);
-        if (player.testCollision(sqr) === true) {
-            player.unapply();
+        gamestate["player"].move(1, 0);
+        if (gamestate["player"].testCollision(gamestate["board"]) === true) {
+            gamestate["player"].unapply();
         } else {
             if(SOUND_EFFECTS){AUDIO["move"].cloneNode().play();}
-            player.apply();
-            player.lastAction = "moveRight";
+            gamestate["player"].apply();
+            gamestate["player"].lastAction = "moveRight";
         }
     },
     "Space" : function(){
         if(SOUND_EFFECTS){AUDIO["harddrop"].cloneNode().play();}
-        score += SCORE_TABLE["hardrop"] * player.drop(sqr);
-        player.apply();
+        gamestate["score"] += SCORE_TABLE["hardrop"] * gamestate["player"].drop(gamestate["board"]);
+        gamestate["player"].apply();
 
-        const playerCopy = Object.assign({}, player);
-        if(player.delete(sqr)){
-            endGame();
-        };
-        player = new Player(randomGenerator.next());
+        lockResets = 0;
+        lockBuffer = 0;
         
-        let t = sqr.fixFilledLines();
-        if(GAMERULES["score"]) {score += determineScore(sqr, playerCopy, t)*currentLevel}
+        const playerCopy = Object.assign({}, gamestate["player"]);
+        if(gamestate["player"].delete(gamestate["board"])){
+          endGame();
+        }
         
+        let t = gamestate["board"].fixFilledLines();
+        if(GAMERULES["score"]) {
+          gamestate["score"] += determineScore(gamestate["board"], playerCopy, t, gamestate["b2b"])*gamestate["currentLevel"];
+        }
         if (t) {
-            if(SOUND_EFFECTS){AUDIO["erase" + t].cloneNode().play();}    
-            if(SCREEN_SHAKE) {startShake(t*0.5);}
-            if(b2b_flag && SOUND_EFFECTS){AUDIO["b2b"].cloneNode().play();}
-            b2b_flag = true;
+          if(SOUND_EFFECTS){AUDIO["erase" + t].cloneNode().play();}    
+          if(SCREEN_SHAKE) {startShake(t*0.5);}
+          if(gamestate["b2b"] && SOUND_EFFECTS){AUDIO["b2b"].cloneNode().play();}
+          gamestate["b2b"] = true;
+        } else {
+          gamestate["b2b"] = false;
         }
-        else {b2b_flag = false;}
-        if(GAMERULES["levels"] && sqr.linesCleared > currentLevel*LEVEL_LENGTH_LINES){
-            if(SOUND_EFFECTS){AUDIO["levelup"].cloneNode().play();}
-            currentLevel++;
-            levelSpeed = LEVEL_SPEED_TABLE[Math.min(LEVEL_SPEED_TABLE.length - 1, currentLevel-1)];
+
+        if(GAMERULES["levels"] && gamestate["board"].linesCleared + (gamestate["startLevel"]-1)*LEVEL_LENGTH_LINES >=  gamestate["currentLevel"]*LEVEL_LENGTH_LINES){
+          if(SOUND_EFFECTS){AUDIO["levelup"].cloneNode().play();}
+          gamestate["currentLevel"] += 1;
+          gamestate["levelSpeed"] = LEVEL_SPEED_TABLE[Math.min(LEVEL_SPEED_TABLE.length - 1, gamestate["currentLevel"]-1)];
         }
         
+        gamestate["player"] = new Player(gamestate["pieceGenerator"].next());
+        gamestate["board"].tetriminoes += 1;
+
+        if(BUFFER_REWIND){
+            if(gamestate_buffer.length >= REWIND_LENGTH){
+                gamestate_buffer.shift();
+            }
+            gamestate_buffer.push(Object.assign({}, gamestate));
+            gamestate_buffer[gamestate_buffer.length-1]["pieceGenerator"] = Object.assign({}, gamestate["pieceGenerator"]);
+            gamestate_buffer[gamestate_buffer.length-1]["board"] = Object.assign({}, gamestate["board"]);
+            gamestate_buffer[gamestate_buffer.length-1]["player"] = Object.assign({}, gamestate["player"]);
+        }
+
         lockResets = 0;
         lockBuffer = 0;
         render_preview(previewCtx, PREVIEWS);
@@ -108,4 +127,4 @@ var keyBindings = {
     "KeyZ" : antiClockTurnAndKick
 };
 
-keyNonRepeaters = ["Space", "KeyC", "ShiftLeft", "ArrowUp", "KeyX", "ControlLeft", "ControlRight","KeyZ"];
+var keyNonRepeaters = ["Space", "KeyC", "ShiftLeft", "ArrowUp", "KeyX", "ControlLeft", "ControlRight","KeyZ"];
