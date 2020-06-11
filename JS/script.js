@@ -105,7 +105,7 @@ function render_preview(ctx, numPreviews){
   if (GAMERULES["countdown"]){
     let timeLeft = Math.max((GAMERULES["countdownValue"] - (now - gamestate["playTimer"])) / 1000, 0)
     if (timeLeft < GAMERULES["countdownValue"] / 10) {style = 2;}
-    stats_queue.push(["TIME LEFT", timeLeft.toFixed(1)]);
+    stats_queue.push(["TIME", timeLeft.toFixed(1)]);
   }
   if(GAMERULES["showLevel"]){stats_queue.push(["LEVEL", gamestate["currentLevel"].toString()])}
   if(GAMERULES["scoreShow"]){stats_queue.push(["SCORE", gamestate["score"].toString()])}
@@ -351,9 +351,11 @@ document.getElementById('button').addEventListener("click", function (e) {
     GAMERULES["lineLimitValue"] = Math.max(Math.floor(lines_dom_sprint.value), 1);
       
     gamestate = Object.assign({}, DEFAULT_GAMESTATE);
-    gamestate["startLevel"] = Math.floor(Math.max(level_dom_marathon.value, 1));
-    gamestate["currentLevel"] = Math.floor(Math.max(level_dom_marathon.value, 1));
-    gamestate["levelSpeed"] = LEVEL_SPEED_TABLE[Math.min(LEVEL_SPEED_TABLE.length - 1, Math.floor(Math.max(level_dom_marathon.value, 1))-1)];
+    if(GAMERULES["levels"]) {
+      gamestate["startLevel"] = Math.floor(Math.max(level_dom_marathon.value, 1));
+      gamestate["currentLevel"] = Math.floor(Math.max(level_dom_marathon.value, 1));
+    }
+    gamestate["levelSpeed"] = LEVEL_SPEED_TABLE[gamestate["currentLevel"]];
 
     inGame = true;
     init();
