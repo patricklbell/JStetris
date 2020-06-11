@@ -32,7 +32,27 @@ function antiClockTurnAndKick(){
 var keyBindings = {
     "KeyC" : swapHold,
     "ShiftLeft" : swapHold,
+    "ShiftRight" : swapHold,
     "ArrowDown" : function(){
+        gamestate["player"].move(0, 1);
+        if (gamestate["player"].testCollision(gamestate["board"]) === true) {
+            gamestate["player"].unapply();
+        } else {
+            if(SOUND_EFFECTS){AUDIO["softdrop"].cloneNode().play();}
+            gamestate["player"].apply();
+            gamestate["score"] += SCORE_TABLE["softdrop"];
+            gamestate["player"].lastAction = "softdrop";
+            render_preview(previewCtx, PREVIEWS);
+
+            // Check whether piece is on ground
+            gamestate["player"].move(0, 1);
+            if (!lockDelay && gamestate["player"].testCollision(gamestate["board"]) === true) {
+                lockBuffer = 0;
+                lockDelay = true;
+            }
+        }
+    },
+    "keyS" : function(){
         gamestate["player"].move(0, 1);
         if (gamestate["player"].testCollision(gamestate["board"]) === true) {
             gamestate["player"].unapply();
@@ -61,7 +81,27 @@ var keyBindings = {
             gamestate["player"].lastAction = "moveLeft";
         }
     },
+    "keyA" : function(){
+        gamestate["player"].move(-1, 0);
+        if (gamestate["player"].testCollision(gamestate["board"]) === true) {
+            gamestate["player"].unapply();
+        } else {
+            if(SOUND_EFFECTS){AUDIO["move"].cloneNode().play();}
+            gamestate["player"].apply();
+            gamestate["player"].lastAction = "moveLeft";
+        }
+    },
     "ArrowRight" : function(){
+        gamestate["player"].move(1, 0);
+        if (gamestate["player"].testCollision(gamestate["board"]) === true) {
+            gamestate["player"].unapply();
+        } else {
+            if(SOUND_EFFECTS){AUDIO["move"].cloneNode().play();}
+            gamestate["player"].apply();
+            gamestate["player"].lastAction = "moveRight";
+        }
+    },
+    "keyD" : function(){
         gamestate["player"].move(1, 0);
         if (gamestate["player"].testCollision(gamestate["board"]) === true) {
             gamestate["player"].unapply();
@@ -121,6 +161,7 @@ var keyBindings = {
         render_preview(previewCtx, PREVIEWS);
     },
     "ArrowUp" : clockTurnAndKick,
+    "keyW" : clockTurnAndKick,
     "KeyX" : clockTurnAndKick,
     "ControlLeft" : antiClockTurnAndKick,
     "ControlRight" : antiClockTurnAndKick,
