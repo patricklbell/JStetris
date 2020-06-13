@@ -255,7 +255,7 @@ var DEFAULT_GAMESTATE = {
     "pieceGenerator" : undefined,
     "playTimer" : undefined,
 };
-var gamestate = {...DEFAULT_GAMESTATE};;
+var gamestate = {...DEFAULT_GAMESTATE};
 
 var MENUS = {
     "pause" : undefined,

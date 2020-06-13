@@ -144,15 +144,14 @@ function moveRight(){
 }
 
 function harddrop(){
-    if(SOUND_EFFECTS){AUDIO["harddrop"].cloneNode().play();}
     gamestate["score"] += SCORE_TABLE["hardrop"] * gamestate["player"].drop(gamestate["board"]);
     gamestate["player"].apply();
-
+    
     const playerCopy = Object.assign({}, gamestate["player"]);
     if(gamestate["player"].delete(gamestate["board"])){
-        paused = true;
-        inGame = false;
-        currentMenu = "main";
+        endGame();
+    } else {
+        if(SOUND_EFFECTS){AUDIO["harddrop"].cloneNode().play();}
     }
     
     let t = gamestate["board"].fixFilledLines();

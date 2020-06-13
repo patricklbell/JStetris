@@ -157,12 +157,12 @@ function endGame(){
     fallDelayBuffer = 0, lastHandledKeyBuffer = 0, shiftDelayBuffer = 0;
     keyPressed = 0, keyBuffer = [];
 
-    gamestate = Object.assign({}, DEFAULT_GAMESTATE);
-    gamestate["pieceGenerator"] = new randomBag(SHAPES.length);
-    gamestate["board"] = new Board();
-    gamestate["player"] = new Player(gamestate["pieceGenerator"].next());
-    gamestate["playTimer"] = now;
-    unpause();
+    paused = true;
+    inGame = false;
+    currentMenu = "main";
+    AUDIO["theme"].pause();
+
+    gamestate = {...DEFAULT_GAMESTATE};
 }
 
 function loadStyle(style){
@@ -313,13 +313,11 @@ function scaleMenus(){
         currentMenu = "settings";
       }, true, BUTTON_BACKGROUND, border_gap),
       new Button(0, 0, button_width, button_height, button_radius, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, "RESTART", font_size, function(obj) {
+        gamestate = {...DEFAULT_GAMESTATE};
         init();
       }, true, BUTTON_BACKGROUND, border_gap),
       new Button(0, 0, button_width, button_height, button_radius, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, "QUIT", font_size, function(){
-        AUDIO["theme"].pause();
-        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        inGame = false;
-        currentMenu = "main";
+        endGame();
       }, true, BUTTON_BACKGROUND, border_gap),
     ])
   ]);
