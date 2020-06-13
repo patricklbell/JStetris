@@ -150,7 +150,9 @@ function harddrop(){
 
     const playerCopy = Object.assign({}, gamestate["player"]);
     if(gamestate["player"].delete(gamestate["board"])){
-        endGame();
+        paused = true;
+        inGame = false;
+        currentMenu = "main";
     }
     
     let t = gamestate["board"].fixFilledLines();

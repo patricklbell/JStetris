@@ -7,7 +7,7 @@ var lockBuffer = 0, lockDelay = false, lockResets = 0;
 var fallDelayBuffer = 0, lastHandledKeyBuffer = 0, shiftDelayBuffer = 0;
 var keyPressed = 0, keyBuffer = []; 
 
-var paused = true, inGame = true;
+var paused = true, inGame = false;
 
 // Rewind buffer
 var gamestate_buffer = [];
@@ -122,7 +122,6 @@ function init () {
   fallDelayBuffer = 0, lastHandledKeyBuffer = 0, shiftDelayBuffer = 0;
   keyPressed = 0, keyBuffer = [];
 
-  gamestate = Object.assign({}, DEFAULT_GAMESTATE);
   gamestate["pieceGenerator"] = new randomBag(SHAPES.length);
   gamestate["board"] = new Board();
   gamestate["player"] = new Player(gamestate["pieceGenerator"].next());
@@ -137,12 +136,14 @@ function gameloop () {
   dt = (now - lastUpdate);
   lastUpdate = now;
   
-  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-  preShake();
-  gamestate.board.render(ctx);
-  gamestate.player.render(ctx, gamestate["board"]);
-  postShake();
-  updatePreview();
+  if(inGame){
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    preShake();
+    gamestate.board.render(ctx);
+    gamestate.player.render(ctx, gamestate["board"]);
+    postShake();
+    updatePreview();
+  }
   if(paused && MENUS[currentMenu].render !== undefined) {MENUS[currentMenu].render(ctx, 0, 0);}
   
   if(!paused && inGame && unpausing === false){
@@ -215,7 +216,7 @@ function gameloop () {
   if((paused || unpausing !== false) && inGame){gamestate["playTimer"] += dt}
 
 
-  if(keyPressed === "Escape" && shiftDelayBuffer === 0){
+  if(keyPressed === "Escape" && shiftDelayBuffer === 0 && inGame){
     if(paused && inGame){
       unpause(ctx);
     } else {
@@ -228,6 +229,5 @@ function gameloop () {
 }
 window.onload = function() {
   var context = new AudioContext();
-  init();
-  gameloop()
+  gameloop();
 }
