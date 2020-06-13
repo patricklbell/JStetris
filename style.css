@@ -139,12 +139,23 @@ input[type=number] {
   left: 0;
   right: 0;
   outline: #3F3F3F 5px solid;
+  /* background-color: black; */
+}
+#fieldbg {
+  margin-top: 5px;
+  padding: 0;
+  /* margin: auto; */
+  display: block;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 #canvasbg {
   margin-top: 5px;
   padding: 0;
   /* margin: auto; */
-  margin-bottom: 5vh;
   display: block;
   position: absolute;
   top: 0;
@@ -152,16 +163,7 @@ input[type=number] {
   left: 0;
   right: 0;
 }
-#previewCanvas {
-  margin-top: 5px;
-  padding: 0;
-  display: block;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
+
 p {
   font-family: 'Roboto', sans-serif;
 }

@@ -1,5 +1,19 @@
 'use strict';
 
+// This function handles arrays and objects
+function eachRecursive(obj, x, y, func){
+    for (var k in obj){
+        if (typeof obj[k] == "object" && obj[k] !== null){
+            let offsetX = x;
+            let offsetY = y;
+            func(obj[k], x, y);
+            if(typeof(obj[k].x) === "number") {offsetX += obj[k].x;}
+            if(typeof(obj[k].y) === "number") {offsetY += obj[k].y;}
+            eachRecursive(obj[k], offsetX, offsetY, func);
+        }
+    }
+}
+
 var getWindowSize = (function() {
     var docEl = document.documentElement,
         IS_BODY_ACTING_ROOT = docEl && docEl.clientHeight === 0;
@@ -70,102 +84,20 @@ class randomBag{
     }
 }
 
-// add pixel aligned versions of strokeRect & fRect to this context instance
-function sRect(x,y,w,h){
-    x=parseInt(x)+0.50;
-    y=parseInt(y)+0.50;
-    this.strokeRect(x,y,w,h);
-}
-function fRect(x,y,w,h){
-    x=parseInt(x);
-    y=parseInt(y);
-    this.fillRect(x,y,w,h);
-}
-
 function drawTile(x, y, n, s=size){
     this.drawImage(tileSheet, 32*(2+n), 0, 32, 32, x, y, s, s);
 }
-
-ctx.sRect = sRect;
-ctx.fRect = fRect;
-ctx.drawTile = drawTile;
-ctx.drawText = drawText;
-previewCtx.sRect = sRect;
-previewCtx.fRect = fRect;
-previewCtx.drawTile = drawTile;
-previewCtx.drawText = drawText;
-
 
 function drawText(text, x, y, style=0, s=size){
     let offsetX = 0; let offsetY = 3*16*style;
     for (let i = 0; i < text.length; i++) {
         let sx = ((text.charCodeAt(i) - 32) % 32) * 16 + offsetX;
         let sy = Math.floor((text.charCodeAt(i) - 32) / 32) * 16 + offsetY;
-        this.drawImage(fontSheet, sx, sy, 15, 16, x+i*s, y, s, s);
+        this.drawImage(fontSheet, sx, sy, 15, 15, x+i*s, y, s, s);
     }
 }
-
-function unpause(ctx){
-    paused = true;
-    
-    let font_size = Math.floor(ctx.canvas.height*COUNTDOWN_FONT_SIZE);
-
-    resize();
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    gamestate["board"].render(ctx);
-    gamestate["player"].render(ctx, gamestate["board"]);
-    render_preview(previewCtx, PREVIEWS);
-    // var imgData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
-    
-    var i = 4;
-    if(SOUND_EFFECTS){AUDIO["countdown"].cloneNode().play();}
-
-    ctx.drawText("3", ctx.canvas.width / 2 - font_size/2, ctx.canvas.height / 2 - font_size/2, 2, font_size); 
-    unpause_interval = setInterval(function (){
-        i--;
-        resize();
-        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        gamestate["board"].render(ctx);
-        gamestate["player"].render(ctx, gamestate["board"]);
-        render_preview(previewCtx, PREVIEWS);
-
-        if (i === 3) {
-            if(SOUND_EFFECTS){AUDIO["countdown"].cloneNode().play();}
-            ctx.drawText("2", ctx.canvas.width / 2 - font_size/2, ctx.canvas.height / 2 - font_size/2, 5, font_size);
-        }
-        if(i === 2){
-            if(SOUND_EFFECTS){AUDIO["countdown"].cloneNode().play();}
-            ctx.drawText("1", ctx.canvas.width / 2 - font_size/2, ctx.canvas.height / 2 - font_size/2, 4, font_size);
-        }
-        else if(i === 1){ 
-            if(MUSIC && inGame) {AUDIO["theme"].play()};
-            paused = false;
-
-            clearInterval(unpause_interval);
-            unpause_interval = false;
-        }
-        
-    }, 1000);
-}
-
-function pause(ctx){
-    clearInterval(unpause_interval);
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    gamestate["board"].render(ctx);
-    gamestate["player"].render(ctx, gamestate["board"]);
-    render_preview(previewCtx, PREVIEWS);
-    unpause_interval = false;
-
-    AUDIO["theme"].pause();
-    if(SOUND_EFFECTS){AUDIO["pause"].cloneNode().play();}
-    let height = Math.floor(ctx.canvas.height / 6);
-    let width = Math.floor(ctx.canvas.height / 24);
-
-    ctx.fillStyle = "#FFFFFF"
-    ctx.fRect(ctx.canvas.width / 2 - 1.5*width, ctx.canvas.height / 2 - 0.5*height, width, height)
-    ctx.fRect(ctx.canvas.width / 2 + 0.5*width, ctx.canvas.height / 2 - 0.5*height, width, height)
-    paused = true;
-}
+ctx.drawTile = drawTile;
+ctx.drawText = drawText;
 
 var shakeDuration = 200;
 var shakeStartTime = -1;
@@ -219,51 +151,19 @@ function msToTime(millisec) {
 function endGame(){
     if(SOUND_EFFECTS){AUDIO["died"].cloneNode().play();}
     AUDIO["theme"].pause();
-    AUDIO["theme"].currrenTime = 0;
-    inGame = false, paused = true;
+    AUDIO["theme"].currentTime = 0;
     
-    if(GAMERULES["results"]){
-        results.style.display = "block";
-        var results_queue = [];
-        let time = Math.max(now - gamestate["playTimer"], 0.00000001);
-        if(GAMERULES["resultsLevel"]){results_queue.push(["Level: " + gamestate["currentLevel"]]);}
-        if(GAMERULES["resultsTimer"]){results_queue.push(["Time: " + msToTime(time)]);}
-        if(GAMERULES["resultsLines"]){results_queue.push(["Lines: " + gamestate["board"].linesCleared]);}
-        if(GAMERULES["resultsScore"]){results_queue.push(["Score: " + gamestate["score"]]);}
-        if(GAMERULES["resultsTPM"]){results_queue.push(["Tetriminoes per minute: " + (gamestate["board"].tetriminoes / (time / 60000)).toFixed(1)]);}
-        if(GAMERULES["resultsLPM"]){results_queue.push(["Lines per minute: " + (gamestate["board"].linesCleared / (time / 60000)).toFixed(1)]);}
-        
-        let html = "<h3>Game Over</h3>"
-        for (let i = 0; i < results_queue.length; i++) {
-            html += `<div class="result-item"><p>`+ results_queue[i] +"</p></div>";
-        }
-        if(BUFFER_REWIND){
-            html += `<button type="button" id="results-rewind" class="button">Rewind `+REWIND_LENGTH+` moves</button>`
-            document.getElementById('results-rewind').addEventListener("click", function(e){
-                if (e.x != 0 && e.y != 0){
-                    resize();
-                    unpause(ctx);
-                    inGame = true;
-                    gamestate = gamestate_buffer[0];
-                    gameloop();
-                    results.style.display = 'none';
-                }
-            });
-        }
-        html += `<button type="button" id="results-continue" class="button">Play Again</button>`
-        results_content.innerHTML = html;
-        document.getElementById('results-continue').addEventListener("click", function (e){
-            if (e.x != 0 && e.y != 0){
-                gamestate_buffer = [];
-                results.style.display = 'none';
-                gameover.style.display = 'block';
-            }
-        });
-    } else {
-        gameover.style.display = 'block';
-    }
-    clearInterval(unpause_interval);
-    unpause_interval = false;
+    lockBuffer = 0, lockDelay = false, lockResets = 0;
+    fallDelayBuffer = 0, lastHandledKeyBuffer = 0, shiftDelayBuffer = 0;
+    keyPressed = 0, keyBuffer = [];
+
+    gamestate = Object.assign({}, DEFAULT_GAMESTATE);
+    gamestate["pieceGenerator"] = new randomBag(SHAPES.length);
+    gamestate["board"] = new Board();
+    gamestate["player"] = new Player(gamestate["pieceGenerator"].next());
+    gamestate["playTimer"] = now;
+    unpause();
+    gameloop();
 }
 
 function loadStyle(style){
@@ -324,38 +224,6 @@ function determineScore(board, player, num_lines, b2b){
     }
     return 0;
 }
-
-setting_icon.onclick = function (){
-    settings.style.display = "block";
-    inGame = false;
-    pause(ctx);
-}
-var restart_icon = document.getElementById('restart-icon');
-restart_icon.onclick = function (){
-    endGame();
-}
-
-
-function setupStyle() {
-    let i = 0;
-    for (var key in STYLES) {
-        let opt = document.createElement('option');
-
-        // create text node to add to option element (opt)
-        opt.appendChild( document.createTextNode(key) );
-
-        // set properties of opt
-        opt.value = i; 
-        if(key === DEFAULT_STYLE){
-            opt.selected = "selected";
-        }
-
-        // add opt to end of select box (sel)
-        style_select.appendChild(opt); 
-        i++;
-    }
-}
-setupStyle();
 
 // https://stackoverflow.com/questions/19189785/is-there-a-good-cookie-library-for-javascript/19189846
 /*********************************************************
@@ -421,4 +289,174 @@ function pushCookies(){
   document.setCookie("screenShake", SCREEN_SHAKE);
   document.setCookie("ghost", GHOST);
   document.setCookie("style", STYLE);
+}
+
+window.onbeforeunload = function(){pushCookies();}
+window.addEventListener("beforeunload", function(e){pushCookies();}, false);
+
+function scaleMenus(){
+    let cw = canvas.width, ch = canvas.height;
+  let font_size = Math.floor(canvas.height*MENU_FONT_SIZE);
+  let button_height = Math.floor(canvas.height*BUTTON_HEIGHT);
+  let button_width = Math.floor(canvas.width*BUTTON_WIDTH);
+  let menu_width = Math.floor(canvas.width*MENU_WIDTH);
+  let settings_width = Math.floor(canvas.width*SETTINGS_WIDTH);
+  let button_gap = Math.floor(canvas.width*BUTTON_GAP);
+  let heading_height = Math.floor(canvas.height*HEADING_HEIGHT);
+  let button_radius = Math.floor(canvas.height*BUTTON_RADIUS);
+  let panel_radius = Math.floor(canvas.height*PANEL_RADIUS);
+  let border_gap = Math.floor(canvas.height*BUTTON_DECORATION_GAP)
+  MENUS.pause = new Div((cw - menu_width)/2, ch/2-(5*button_gap+4*button_height)/2, [
+    new Panel(0, 0, menu_width, 5*button_gap+4*button_height, panel_radius, PANEL_COLOUR, BUTTON_STROKE),
+    new VBox(button_gap, button_gap, button_gap, [
+      new Button(0, 0, button_width, button_height, button_radius, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, "RESUME", font_size, function (obj) {
+        unpause(ctx);
+      }, true, BUTTON_BACKGROUND, border_gap),
+      new Button(0, 0, button_width, button_height, button_radius, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, "OPTIONS", font_size, function (obj) {
+        currentMenu = "settings";
+      }, true, BUTTON_BACKGROUND, border_gap),
+      new Button(0, 0, button_width, button_height, button_radius, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, "RESTART", font_size, function(obj) {
+        init();
+      }, true, BUTTON_BACKGROUND, border_gap),
+      new Button(0, 0, button_width, button_height, button_radius, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, "MENU", font_size, function(){
+        currentMenu = "main";
+      }, true, BUTTON_BACKGROUND, border_gap),
+    ])
+  ]);
+  MENUS.settings = new Div((cw - settings_width)/2, ch/2-(6*button_gap+6.5*button_height)/2, 
+  [
+    new Panel(0, 0, settings_width, 6*button_gap+6.5*button_height, panel_radius, "#3F3F3F", "#FFFFFF"),
+    
+    new VBox(button_gap/2, button_gap, button_gap, [
+      new CenteredText(-button_gap/2, 0, settings_width, button_height/2, "SETTINGS", font_size),
+
+      new HBox(0, 0, button_width/5.5, [
+        new Text(0, 0, button_width / 2, button_height/2, "STYLE:", font_size*(3/4)),
+        new HBox(0, 0, -button_width/6, [
+          new Button(-button_width/12, 0, button_width/6, button_height/2, button_radius/2, [BUTTON_BACKGROUND, MENU_BUTTON_COLOUR][(STYLE_NAMES.indexOf(STYLE)==0)?0:1], BUTTON_STROKE, [BUTTON_BACKGROUND, BUTTON_SELECT_COLOUR][(STYLE_NAMES.indexOf(STYLE)==0)?0:1], "<", font_size*(3/4), function () {
+            let loc = MENUS[currentMenu].contents[1].contents[1].contents[1].contents;
+            STYLE = STYLE_NAMES[Math.max(STYLE_NAMES.indexOf(STYLE)-1, 0)];
+            loadStyle(STYLE);
+            if(STYLE_NAMES.indexOf(STYLE) == 0){loc[0].fillColor = BUTTON_BACKGROUND; loc[0].selectColor = BUTTON_BACKGROUND}
+            else{loc[0].fillColor = MENU_BUTTON_COLOUR; loc[0].selectColor = BUTTON_SELECT_COLOUR; loc[2].fillColor = MENU_BUTTON_COLOUR; loc[2].selectColor = BUTTON_SELECT_COLOUR;}
+            loc[1].text = STYLE_NAMES_SHORT[STYLE_NAMES.indexOf(STYLE)];
+          }, false),
+          new CenteredText(0, 0, button_width/2, button_height/2, STYLE_NAMES_SHORT[STYLE_NAMES.indexOf(STYLE)], font_size*(3/4)),
+          new Button(button_width/12, 0, button_width/6, button_height/2, button_radius/2, [BUTTON_BACKGROUND, MENU_BUTTON_COLOUR][(STYLE_NAMES.indexOf(STYLE)>=STYLE_NAMES.length-1)?0:1], BUTTON_STROKE, [BUTTON_BACKGROUND, BUTTON_SELECT_COLOUR][(STYLE_NAMES.indexOf(STYLE)>=STYLE_NAMES.length-1)?0:1], ">", font_size*(3/4), function () {
+            let loc = MENUS[currentMenu].contents[1].contents[1].contents[1].contents;
+            STYLE = STYLE_NAMES[Math.min(STYLE_NAMES.indexOf(STYLE)+1, STYLE_NAMES.length-1)];
+            loadStyle(STYLE);
+            if(STYLE_NAMES.indexOf(STYLE) >= STYLE_NAMES.length-1){loc[2].fillColor = BUTTON_BACKGROUND; loc[2].selectColor = BUTTON_BACKGROUND}
+            else{loc[2].fillColor = MENU_BUTTON_COLOUR; loc[2].selectColor = BUTTON_SELECT_COLOUR; loc[0].fillColor = MENU_BUTTON_COLOUR; loc[0].selectColor = BUTTON_SELECT_COLOUR;}
+            loc[1].text = STYLE_NAMES_SHORT[STYLE_NAMES.indexOf(STYLE)];
+          }, false),
+        ])
+      ]),
+
+      new HBox(0, 0, button_width/5.5, [
+        new Text(0, 0, button_width / 2, button_height/2, "GHOST:", font_size*(3/4)),
+        new Button(0, 0, button_width / 2, button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, CHECK_OPTIONS[GHOST?1:0], font_size*(3/4), function (obj) {
+          GHOST = !GHOST;
+          obj.text = CHECK_OPTIONS[GHOST?1:0];
+        }, false),
+      ]),
+      new HBox(0, 0, button_width/5.5, [
+        new Text(0, 0, button_width / 2, button_height/2, "MUSIC:", font_size*(3/4)),
+        new Button(0, 0, button_width / 2, button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, CHECK_OPTIONS[MUSIC?1:0], font_size*(3/4), function (obj) {
+          MUSIC = !MUSIC;
+          obj.text = CHECK_OPTIONS[MUSIC?1:0];
+        }, false),
+      ]),
+      new HBox(0, 0, button_width/5.5, [
+        new Text(0, 0, button_width / 2, button_height/2, "SFX:", font_size*(3/4)),
+        new Button(0, 0, button_width / 2, button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, CHECK_OPTIONS[SOUND_EFFECTS?1:0], font_size*(3/4), function (obj) {
+          SOUND_EFFECTS = !SOUND_EFFECTS;
+          obj.text = CHECK_OPTIONS[SOUND_EFFECTS?1:0];
+        }, false),
+      ]),
+      new HBox(0, 0, button_width/5.5, [
+        new Text(0, 0, button_width / 2, button_height/2, "SCREEN SHAKE:", font_size*(3/4)),
+        new Button(0, 0, button_width / 2, button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, CHECK_OPTIONS[SCREEN_SHAKE?1:0], font_size*(3/4), function (obj) {
+          SCREEN_SHAKE = !SCREEN_SHAKE;
+          obj.text = CHECK_OPTIONS[SCREEN_SHAKE?1:0];
+        }, false),
+      ]),
+
+      new HBox(0, 0, button_width/5.5, [
+        new Text(0, 0, button_width / 2, button_height/2, "REPEAT RATE:", font_size*(3/4)),
+        new HBox(0, 0, -button_width/6, [
+          new Button(-button_width/12, 0, button_width/6, button_height/2, button_radius/2, [BUTTON_BACKGROUND, MENU_BUTTON_COLOUR][(AUTO_REPEAT_RATE<=1)?0:1], BUTTON_STROKE, [BUTTON_BACKGROUND, BUTTON_SELECT_COLOUR][(AUTO_REPEAT_RATE<=1)?0:1], "-", font_size*(3/4), function () {
+            let incr = 10, loc = MENUS[currentMenu].contents[1].contents[6].contents[1].contents;
+            if(AUTO_REPEAT_RATE < 20){incr = 1}
+            AUTO_REPEAT_RATE = Math.max(AUTO_REPEAT_RATE-incr, 1);
+            if(AUTO_REPEAT_RATE <= 1){loc[0].fillColor = BUTTON_BACKGROUND; loc[0].selectColor = BUTTON_BACKGROUND}
+            else{loc[0].fillColor = MENU_BUTTON_COLOUR; loc[0].selectColor = BUTTON_SELECT_COLOUR}
+            loc[1].text = AUTO_REPEAT_RATE.toString() + " MS";
+          }, false),
+          new CenteredText(0, 0, button_width/2, button_height/2, AUTO_REPEAT_RATE.toString()+" MS", font_size*(3/4)),
+          new Button(button_width/12, 0, button_width/6, button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, "+", font_size*(3/4), function () {
+            let incr = 10, loc = MENUS[currentMenu].contents[1].contents[6].contents[1].contents;
+            if(AUTO_REPEAT_RATE < 20){incr = 1}
+            AUTO_REPEAT_RATE += incr;
+            loc[1].text = AUTO_REPEAT_RATE.toString() + " MS";
+            if(AUTO_REPEAT_RATE <= 1){loc[0].fillColor = BUTTON_BACKGROUND; loc[0].selectColor = BUTTON_BACKGROUND}
+            else{loc[0].fillColor = MENU_BUTTON_COLOUR; loc[0].selectColor = BUTTON_SELECT_COLOUR}
+          }, false),
+        ])
+      ]),
+
+      new HBox(0, 0, button_width/5.5, [
+        new Text(0, 0, button_width / 2, button_height/2, "DELAY TIME:", font_size*(3/4)),
+        new HBox(0, 0, -button_width/6, [
+          new Button(-button_width/12, 0, button_width/6, button_height/2, button_radius/2, [BUTTON_BACKGROUND, MENU_BUTTON_COLOUR][(DELAY_AUTO_SHIFT<=1)?0:1], BUTTON_STROKE, [BUTTON_BACKGROUND, BUTTON_SELECT_COLOUR][(DELAY_AUTO_SHIFT<=1)?0:1], "-", font_size*(3/4), function () {
+            let incr = 10, loc = MENUS[currentMenu].contents[1].contents[7].contents[1].contents;
+            if(DELAY_AUTO_SHIFT < 20){incr = 1}
+            DELAY_AUTO_SHIFT = Math.max(DELAY_AUTO_SHIFT-incr, 1);
+            loc[1].text = DELAY_AUTO_SHIFT.toString() + " MS";
+            if(DELAY_AUTO_SHIFT <= 1){loc[0].fillColor = BUTTON_BACKGROUND; loc[0].selectColor = BUTTON_BACKGROUND}
+            else{loc[0].fillColor = MENU_BUTTON_COLOUR; loc[0].selectColor = BUTTON_SELECT_COLOUR}
+          }, false),
+          new CenteredText(0, 0, button_width/2, button_height/2, DELAY_AUTO_SHIFT.toString() + " MS", font_size*(3/4)),
+          new Button(button_width/12, 0, button_width/6, button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, "+", font_size*(3/4), function () {
+            let incr = 10, loc = MENUS[currentMenu].contents[1].contents[7].contents[1].contents;
+            if(DELAY_AUTO_SHIFT < 20){incr = 1}
+            DELAY_AUTO_SHIFT += incr;
+            loc[1].text = DELAY_AUTO_SHIFT.toString() + " MS";
+            if(DELAY_AUTO_SHIFT <= 1){loc[0].fillColor = BUTTON_BACKGROUND; loc[0].selectColor = BUTTON_BACKGROUND}
+            else{loc[0].fillColor = MENU_BUTTON_COLOUR; loc[0].selectColor = BUTTON_SELECT_COLOUR}
+          }, false),
+        ])
+      ]),
+      
+      new HBox(button_gap/2, 0, button_width/5.5, [
+        new Button(0, 0, button_width/2, button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, "BACK", font_size*(3/4), function (obj) {
+          currentMenu = "pause";
+        }, true, BUTTON_BACKGROUND, border_gap),
+        new Button(0, 0, button_width/2, button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, "RESET", font_size*(3/4), function (obj) {
+          SCREEN_SHAKE = true, MUSIC = true, SOUND_EFFECTS = true, GHOST = true, AUTO_REPEAT_RATE = 25, DELAY_AUTO_SHIFT = 125;
+          STYLE = DEFAULT_STYLE; loadStyle(STYLE);
+          scaleMenus();
+        }, true, BUTTON_BACKGROUND, border_gap),
+      ]),
+  
+    ]),
+  ]);
+
+  MENUS.main = new Div((cw - settings_width)/2, ch/2-(6*button_gap+6.5*button_height)/2, [
+    new Panel(0, 0, settings_width, 6*button_gap+6.5*button_height, panel_radius, "#3F3F3F", "#FFFFFF"),
+    
+    new VBox(button_gap/2, button_gap, button_gap, [
+      new CenteredText(0, 0, settings_width, button_height/2, "GAME MODE", font_size),
+
+      new HBox(0, 0, button_gap/2, [
+        new Button(0, 0, button_width/3, button_height/2, button_radius/2, [BUTTON_BACKGROUND, MENU_BUTTON_COLOUR][(GAMEMODE_NAMES.indexOf(GAMEMODE)==0)?0:1], BUTTON_STROKE, [BUTTON_BACKGROUND, BUTTON_SELECT_COLOUR][(GAMEMODE_NAMES.indexOf(GAMEMODE)==0)?0:1], "<", font_size*(3/4), function () {
+          
+        }, false),
+        new CenteredText(0, 0, button_width/2, button_height/2, GAMEMODE.toUpperCase(), font_size*(3/4)),
+        new Button(0, 0, button_width/3, button_height/2, button_radius/2, [BUTTON_BACKGROUND, MENU_BUTTON_COLOUR][(GAMEMODE_NAMES.indexOf(GAMEMODE)>=GAMEMODE_NAMES.length-1)?0:1], BUTTON_STROKE, [BUTTON_BACKGROUND, BUTTON_SELECT_COLOUR][(GAMEMODE_NAMES.indexOf(GAMEMODE)>=STYLE_NAMES.length-1)?0:1], ">", font_size*(3/4), function () {
+          
+        }, false),
+      ]),
+    ]),
+  ]);
 }

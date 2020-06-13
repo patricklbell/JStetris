@@ -1,13 +1,23 @@
 'use strict';
 
+var tileSheet = document.getElementById('tilesheet');
+var fontSheet = document.getElementById('fontsheet');
+var canvas = document.getElementById('canvas');
+var fieldbg = document.getElementById('fieldbg');
+var canvasbg = document.getElementById('canvasbg');
+
 var ctx = canvas.getContext('2d');
-var previewCtx = previewCanvas.getContext('2d');
-var HEIGHT = 20, WIDTH = 10, GHOST = true, LOCK_DELAY = 500, MAX_LOCK_RESETS = 15;
-var PREVIEWS = 5, SECOND_PREVIEW_SCALE_DOWN = 0.5, HOLD_RENDER_SCALE = 0.75;
-var AUTO_REPEAT_RATE = 25, DELAY_AUTO_SHIFT = 125, LEVEL_LENGTH_LINES = 10;
-var COUNTDOWN_FONT_SIZE = 1/20, PREVIEW_FONT_SIZE = 1/40, PREVEIW_FONT_GAP = 2/100, PREVIEW_SECTION_GAP = 2/100;
-var SCREEN_SHAKE = true, MUSIC = true, SOUND_EFFECTS = true;
-var REWIND_LENGTH = 10, BUFFER_REWIND = false;
+var SCREEN_SHAKE = true, MUSIC = true, SOUND_EFFECTS = true, GHOST = true, unpausing = false;
+var AUTO_REPEAT_RATE = 25, DELAY_AUTO_SHIFT = 125, LOCK_DELAY = 500, MAX_LOCK_RESETS = 15;
+const HEIGHT = 20, WIDTH = 10, BUFFER_HEIGHT = 4, LEVEL_LENGTH_LINES = 10;
+const PREVIEWS = 5, SECOND_PREVIEW_SCALE_DOWN = 0.5, HOLD_RENDER_SCALE = 0.75;
+const COUNTDOWN_FONT_SIZE = 1/20, PREVIEW_FONT_SIZE = 1/40, PREVEIW_FONT_GAP = 2/100, PREVIEW_SECTION_GAP = 2/100;
+const REWIND_LENGTH = 10, BUFFER_REWIND = false, PREVIEW_WIDTH = 4.7;
+const MENU_FONT_SIZE = 1/40, MENU_FONT_STYLE = 0, PANEL_RADIUS = 1/40;
+const BUTTON_RADIUS = 1/40, BUTTON_HEIGHT = 1/15, BUTTON_WIDTH = 5/9, BUTTON_GAP = 1/20, BUTTON_DECORATION_GAP = 1/40;
+const MENU_WIDTH = 2/3, SETTINGS_WIDTH = 3/4, HEADING_HEIGHT = 1/9;
+const CHECK_OPTIONS = ["OFF", "ON"];
+const MENU_BUTTON_COLOUR = "#313131", BUTTON_COLOUR = "#525252", BUTTON_SELECT_COLOUR = "#DDDDDDD1", BUTTON_STROKE = "#FFFFFF", PANEL_COLOUR = "#414141", BUTTON_BACKGROUND = "#202020";
 
 var LEVEL_SPEED_TABLE = [1000.00, 793, 617.80, 472.73, 355.20, 262.00, 189.68, 134.73, 93.88, 64.15, 42.98, 28.22, 18.15, 11.44, 7.06, 
     5, 5, 5, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2];
@@ -55,7 +65,7 @@ const SPAWN_TABLE = [
     [Math.floor(WIDTH / 2) - 2, -2],
 ];
 const NAMES = ["I", "J", "L", "O", "S", "T", "Z"];
-const PREVIEW_ALPHA = 0.7;
+const PREVIEW_ALPHA = 0.5;
 var LINE_CLEAR_NAMES = ["", "single", "double", "triple", "tetris"];
 
 var AUDIO = {
@@ -100,7 +110,7 @@ const STYLES = {
     },
     "Classic" : {
         "blockskin" : "b28.png",
-        "theme" : "theme.mp3",
+        "theme" : "theme_classic.mp3",
         "fieldbg" : "fieldbg.png",
         "font" : "font.png",
     },
@@ -129,6 +139,8 @@ const STYLES = {
         "font" : "font.png",
     },
 };
+const STYLE_NAMES = ["Default", "Classic", "Retro", "Plain", "Cute", "Interesting", "Glazed"];
+const STYLE_NAMES_SHORT = ["DEF", "COLOR", "RETRO", "PLAIN", "CUTE", "INT", "GLAZE"]
 
 const GAME_MODES = {
     "marathon" : {
@@ -191,6 +203,8 @@ const GAME_MODES = {
 }
 // Default value
 var GAMERULES = {...GAME_MODES["marathon"]};
+var GAMEMODE = "marathon"
+var GAMEMODE_NAMES = ["marathon", "sprint", "ultra"];
 
 const SCORE_TABLE = {
     "" : 0,
@@ -241,5 +255,13 @@ var DEFAULT_GAMESTATE = {
     "pieceGenerator" : undefined,
     "playTimer" : undefined,
 };
+var gamestate;
 
-var gamestate = Object.assign({}, DEFAULT_GAMESTATE);
+var MENUS = {
+    "pause" : undefined,
+    "main" : undefined,
+    "settings" : undefined,
+    "results" : undefined,
+}
+var currentMenu = "pause";
+var mouseX, mouseY, clicked;
