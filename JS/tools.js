@@ -267,6 +267,8 @@ function parseBool(str){
 
 function loadCookies(){
   if (document.getCookie('startLevel') !== undefined) {gamestate.startLevel = parseInt(document.getCookie('startLevel')); gamestate.currentLevel = gamestate.startLevel; gamestate.levelSpeed = LEVEL_SPEED_TABLE[gamestate.currentLevel];};
+  if (document.getCookie('countdownValue') !== undefined) {GAMERULES.countdownValue = parseInt(document.getCookie('countdownValue'));};
+  if (document.getCookie('lineLimitValue') !== undefined) {GAMERULES.lineLimitValue = parseInt(document.getCookie('lineLimitValue'));};
   if (document.getCookie('autoRepeatDelay') !== undefined) {AUTO_REPEAT_RATE = parseInt(document.getCookie('autoRepeatDelay'));};
   if (document.getCookie('delayAutoShift') !== undefined) {DELAY_AUTO_SHIFT = parseInt(document.getCookie('delayAutoShift'));};
   if (document.getCookie('music') !== undefined) {MUSIC = parseBool(document.getCookie('music'));};
@@ -279,6 +281,8 @@ loadCookies();
 
 function pushCookies(){
   document.setCookie("startLevel", gamestate.startLevel);
+  document.setCookie("lineLimitValue", GAMERULES.lineLimitValue);
+  document.setCookie("countdownValue", GAMERULES.countdownValue);
   document.setCookie("autoRepeatDelay", AUTO_REPEAT_RATE);
   document.setCookie("delayAutoShift", DELAY_AUTO_SHIFT);
   document.setCookie("music", MUSIC);
@@ -450,12 +454,14 @@ function scaleMenus(){
         new Button(0, 0, button_width/3, button_height*(2/3), button_radius/2, [BUTTON_BACKGROUND, MENU_BUTTON_COLOUR][(GAMEMODE_NAMES.indexOf(GAMEMODE)==0)?0:1], BUTTON_STROKE, [BUTTON_BACKGROUND, BUTTON_SELECT_COLOUR][(GAMEMODE_NAMES.indexOf(GAMEMODE)==0)?0:1], "<", font_size*(3/4), function () {
             GAMEMODE = GAMEMODE_NAMES[Math.max(GAMEMODE_NAMES.indexOf(GAMEMODE)-1, 0)];
             GAMERULES = {...GAME_MODES[GAMEMODE]};
+            loadCookies();
             scaleMenus();
         }, false),
         new CenteredText(0, 0, button_width/2, button_height*(2/3), GAMEMODE.toUpperCase(), font_size*(3/4)),
         new Button(0, 0, button_width/3, button_height*(2/3), button_radius/2, [BUTTON_BACKGROUND, MENU_BUTTON_COLOUR][(GAMEMODE_NAMES.indexOf(GAMEMODE)>=GAMEMODE_NAMES.length-1)?0:1], BUTTON_STROKE, [BUTTON_BACKGROUND, BUTTON_SELECT_COLOUR][(GAMEMODE_NAMES.indexOf(GAMEMODE)>=GAMEMODE_NAMES.length-1)?0:1], ">", font_size*(3/4), function () {
             GAMEMODE = GAMEMODE_NAMES[Math.min(GAMEMODE_NAMES.indexOf(GAMEMODE)+1, GAMEMODE_NAMES.length-1)];
             GAMERULES = {...GAME_MODES[GAMEMODE]};
+            loadCookies();
             scaleMenus();
         }, false),
       ]),
@@ -527,17 +533,17 @@ function scaleMenus(){
         MENUS.main.contents[1].contents[3] = new HBox(0, 0, button_width/5.5, [
             new Text(0, 0, button_width / 2, button_height/2, "TIME:", font_size*(3/4)),
             new HBox(0, 0, -button_width/6, [
-                new Button(-button_width/12, 0, button_width/6, button_height/2, button_radius/2, [BUTTON_BACKGROUND, MENU_BUTTON_COLOUR][(GAMERULES.countdownValue<=1000)?0:1], BUTTON_STROKE, [BUTTON_BACKGROUND, BUTTON_SELECT_COLOUR][(GAMERULES.countdownValue<=1000)?0:1], "<", font_size*(3/4), function () {
+                new Button(-button_width/12, 0, button_width/6, button_height/2, button_radius/2, [BUTTON_BACKGROUND, MENU_BUTTON_COLOUR][(GAMERULES.countdownValue<=60000)?0:1], BUTTON_STROKE, [BUTTON_BACKGROUND, BUTTON_SELECT_COLOUR][(GAMERULES.countdownValue<=60000)?0:1], "<", font_size*(3/4), function () {
                   let loc = MENUS.main.contents[1].contents[3].contents[1].contents;
-                  GAMERULES.countdownValue = Math.max(GAMERULES.countdownValue-1000, 1000);
-                  loc[1].text = (GAMERULES.countdownValue/1000).toFixed() + " MIN";
-                  if((GAMERULES.countdownValue/1000) <= 1){loc[0].fillColor = BUTTON_BACKGROUND; loc[0].selectColor = BUTTON_BACKGROUND;}
+                  GAMERULES.countdownValue = Math.max(GAMERULES.countdownValue-60000, 60000);
+                  loc[1].text = (GAMERULES.countdownValue/60000).toFixed() + " MIN";
+                  if((GAMERULES.countdownValue/60000) <= 1){loc[0].fillColor = BUTTON_BACKGROUND; loc[0].selectColor = BUTTON_BACKGROUND;}
                 }, false),
-                new CenteredText(0, 0, button_width/2, button_height/2, (GAMERULES.countdownValue/1000).toFixed() + " MIN", font_size*(3/4)),
+                new CenteredText(0, 0, button_width/2, button_height/2, (GAMERULES.countdownValue/60000).toFixed() + " MIN", font_size*(3/4)),
                 new Button(button_width/12, 0, button_width/6, button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, ">", font_size*(3/4), function () {
                   let loc = MENUS.main.contents[1].contents[3].contents[1].contents;
-                  GAMERULES.countdownValue += 1000;
-                  loc[1].text = (GAMERULES.countdownValue/1000).toFixed() + " MIN";
+                  GAMERULES.countdownValue += 60000;
+                  loc[1].text = (GAMERULES.countdownValue/60000).toFixed() + " MIN";
                   loc[0].fillColor = MENU_BUTTON_COLOUR; loc[0].selectColor = BUTTON_SELECT_COLOUR;
                 }, false),
             ]),

@@ -186,7 +186,7 @@ const GAME_MODES = {
         "showLevel" : false,
         "timer" : false,
         "countdown" : true,
-        "countdownValue" : 1000,
+        "countdownValue" : 60000,
         "showLines" : true,
         "lineLimit" : false,
         "lineLimitValue" : 0,
