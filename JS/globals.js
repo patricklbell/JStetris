@@ -19,9 +19,8 @@ const MENU_WIDTH = 2/3, SETTINGS_WIDTH = 3/4, HEADING_HEIGHT = 1/9;
 const CHECK_OPTIONS = ["OFF", "ON"];
 const MENU_BUTTON_COLOUR = "#313131", BUTTON_COLOUR = "#525252", BUTTON_SELECT_COLOUR = "#DDDDDDD1", BUTTON_STROKE = "#FFFFFF", PANEL_COLOUR = "#414141", BUTTON_BACKGROUND = "#202020";
 
-var LEVEL_SPEED_TABLE = [1000.00, 793, 617.80, 472.73, 355.20, 262.00, 189.68, 134.73, 93.88, 64.15, 42.98, 28.22, 18.15, 11.44, 7.06, 
-    5, 5, 5, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2];
-    const SHAPES = [
+var LEVEL_SPEED_TABLE = [1000.00, 793, 617.80, 472.73, 355.20, 262.00, 189.68, 134.73, 93.88, 64.15, 42.98, 28.22, 18.15, 11.44, 7.06, 5, 5, 5, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2];
+const SHAPES = [
   // size of bounding square, positions * num of blocks
   [3, [0, 1], [1, 1], [2, 1], [3, 1]],
   [2, [0, 0], [0, 1], [1, 1], [2, 1]],
