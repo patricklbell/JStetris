@@ -162,7 +162,9 @@ function endGame(){
     currentMenu = "main";
     AUDIO["theme"].pause();
 
+    pushCookies();
     gamestate = {...DEFAULT_GAMESTATE};
+    loadCookies();
 }
 
 function loadStyle(style){
@@ -266,7 +268,7 @@ function parseBool(str){
 }
 
 function loadCookies(){
-  if (document.getCookie('startLevel') !== undefined) {gamestate.startLevel = parseInt(document.getCookie('startLevel')); gamestate.currentLevel = gamestate.startLevel; gamestate.levelSpeed = LEVEL_SPEED_TABLE[gamestate.currentLevel];};
+  if (document.getCookie('startLevel') !== undefined) {gamestate.startLevel = parseInt(document.getCookie('startLevel')); gamestate.currentLevel = gamestate.startLevel; gamestate["levelSpeed"] = LEVEL_SPEED_TABLE[Math.min(LEVEL_SPEED_TABLE.length - 1, gamestate["currentLevel"]-1)];;};
   if (document.getCookie('countdownValue') !== undefined) {GAMERULES.countdownValue = parseInt(document.getCookie('countdownValue'));};
   if (document.getCookie('lineLimitValue') !== undefined) {GAMERULES.lineLimitValue = parseInt(document.getCookie('lineLimitValue'));};
   if (document.getCookie('autoRepeatDelay') !== undefined) {AUTO_REPEAT_RATE = parseInt(document.getCookie('autoRepeatDelay'));};
@@ -296,7 +298,7 @@ window.onbeforeunload = function(){pushCookies();}
 window.addEventListener("beforeunload", function(e){pushCookies();}, false);
 
 function scaleMenus(){
-    let cw = canvas.width, ch = canvas.height;
+  let cw = canvas.width, ch = canvas.height;
   let font_size = Math.floor(canvas.height*MENU_FONT_SIZE);
   let button_height = Math.floor(canvas.height*BUTTON_HEIGHT);
   let button_width = Math.floor(canvas.width*BUTTON_WIDTH);
@@ -317,7 +319,9 @@ function scaleMenus(){
         currentMenu = "settings";
       }, true, BUTTON_BACKGROUND, border_gap),
       new Button(0, 0, button_width, button_height, button_radius, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, "RESTART", font_size, function(obj) {
+        pushCookies();
         gamestate = {...DEFAULT_GAMESTATE};
+        loadCookies();
         init();
       }, true, BUTTON_BACKGROUND, border_gap),
       new Button(0, 0, button_width, button_height, button_radius, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, "QUIT", font_size, function(){
@@ -335,22 +339,26 @@ function scaleMenus(){
       new HBox(0, 0, button_width/5.5, [
         new Text(0, 0, button_width / 2, button_height/2, "STYLE:", font_size*(3/4)),
         new HBox(0, 0, -button_width/6, [
-          new Button(-button_width/12, 0, button_width/6, button_height/2, button_radius/2, [BUTTON_BACKGROUND, MENU_BUTTON_COLOUR][(STYLE_NAMES.indexOf(STYLE)==0)?0:1], BUTTON_STROKE, [BUTTON_BACKGROUND, BUTTON_SELECT_COLOUR][(STYLE_NAMES.indexOf(STYLE)==0)?0:1], "<", font_size*(3/4), function () {
-            let loc = MENUS[currentMenu].contents[1].contents[1].contents[1].contents;
-            STYLE = STYLE_NAMES[Math.max(STYLE_NAMES.indexOf(STYLE)-1, 0)];
-            loadStyle(STYLE);
-            if(STYLE_NAMES.indexOf(STYLE) == 0){loc[0].fillColor = BUTTON_BACKGROUND; loc[0].selectColor = BUTTON_BACKGROUND}
-            else{loc[0].fillColor = MENU_BUTTON_COLOUR; loc[0].selectColor = BUTTON_SELECT_COLOUR; loc[2].fillColor = MENU_BUTTON_COLOUR; loc[2].selectColor = BUTTON_SELECT_COLOUR;}
+          new Button(-button_width/12, 0, button_width/6, button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, "<", font_size*(3/4), function () {
+            let loc = MENUS.settings.contents[1].contents[1].contents[1].contents;
+            if(STYLE_NAMES.indexOf(STYLE) == 0){
+              STYLE = STYLE_NAMES[STYLE_NAMES.length-1];
+            } else {
+              STYLE = STYLE_NAMES[STYLE_NAMES.indexOf(STYLE)-1];
+            }
             loc[1].text = STYLE_NAMES_SHORT[STYLE_NAMES.indexOf(STYLE)];
+            loadStyle(STYLE);
           }, false),
           new CenteredText(0, 0, button_width/2, button_height/2, STYLE_NAMES_SHORT[STYLE_NAMES.indexOf(STYLE)], font_size*(3/4)),
-          new Button(button_width/12, 0, button_width/6, button_height/2, button_radius/2, [BUTTON_BACKGROUND, MENU_BUTTON_COLOUR][(STYLE_NAMES.indexOf(STYLE)>=STYLE_NAMES.length-1)?0:1], BUTTON_STROKE, [BUTTON_BACKGROUND, BUTTON_SELECT_COLOUR][(STYLE_NAMES.indexOf(STYLE)>=STYLE_NAMES.length-1)?0:1], ">", font_size*(3/4), function () {
-            let loc = MENUS[currentMenu].contents[1].contents[1].contents[1].contents;
-            STYLE = STYLE_NAMES[Math.min(STYLE_NAMES.indexOf(STYLE)+1, STYLE_NAMES.length-1)];
-            loadStyle(STYLE);
-            if(STYLE_NAMES.indexOf(STYLE) >= STYLE_NAMES.length-1){loc[2].fillColor = BUTTON_BACKGROUND; loc[2].selectColor = BUTTON_BACKGROUND}
-            else{loc[2].fillColor = MENU_BUTTON_COLOUR; loc[2].selectColor = BUTTON_SELECT_COLOUR; loc[0].fillColor = MENU_BUTTON_COLOUR; loc[0].selectColor = BUTTON_SELECT_COLOUR;}
+          new Button(button_width/12, 0, button_width/6, button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, ">", font_size*(3/4), function () {
+            let loc = MENUS.settings.contents[1].contents[1].contents[1].contents;
+            if(STYLE_NAMES.indexOf(STYLE)+1 == STYLE_NAMES.length){
+              STYLE = STYLE_NAMES[0];
+            } else {
+              STYLE = STYLE_NAMES[STYLE_NAMES.indexOf(STYLE)+1];
+            }
             loc[1].text = STYLE_NAMES_SHORT[STYLE_NAMES.indexOf(STYLE)];
+            loadStyle(STYLE);
           }, false),
         ])
       ]),
@@ -451,18 +459,30 @@ function scaleMenus(){
       new CenteredText(0, 0, settings_width, button_height/2, "GAME MODE", font_size),
 
       new HBox(0, 0, button_gap/2, [
-        new Button(0, 0, button_width/3, button_height*(2/3), button_radius/2, [BUTTON_BACKGROUND, MENU_BUTTON_COLOUR][(GAMEMODE_NAMES.indexOf(GAMEMODE)==0)?0:1], BUTTON_STROKE, [BUTTON_BACKGROUND, BUTTON_SELECT_COLOUR][(GAMEMODE_NAMES.indexOf(GAMEMODE)==0)?0:1], "<", font_size*(3/4), function () {
-            GAMEMODE = GAMEMODE_NAMES[Math.max(GAMEMODE_NAMES.indexOf(GAMEMODE)-1, 0)];
+        new Button(0, 0, button_width/3, button_height*(2/3), button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, "<", font_size*(3/4), function () {
+            pushCookies();
+            let loc = MENUS.main.contents[1].contents[1].contents
+            if(GAMEMODE_NAMES.indexOf(GAMEMODE) == 0){
+              GAMEMODE = GAMEMODE_NAMES[GAMEMODE_NAMES.length-1]
+            } else {
+              GAMEMODE = GAMEMODE_NAMES[GAMEMODE_NAMES.indexOf(GAMEMODE)-1];
+            }  
             GAMERULES = {...GAME_MODES[GAMEMODE]};
-            loadCookies();
             scaleMenus();
+            loadCookies();
         }, false),
         new CenteredText(0, 0, button_width/2, button_height*(2/3), GAMEMODE.toUpperCase(), font_size*(3/4)),
-        new Button(0, 0, button_width/3, button_height*(2/3), button_radius/2, [BUTTON_BACKGROUND, MENU_BUTTON_COLOUR][(GAMEMODE_NAMES.indexOf(GAMEMODE)>=GAMEMODE_NAMES.length-1)?0:1], BUTTON_STROKE, [BUTTON_BACKGROUND, BUTTON_SELECT_COLOUR][(GAMEMODE_NAMES.indexOf(GAMEMODE)>=GAMEMODE_NAMES.length-1)?0:1], ">", font_size*(3/4), function () {
-            GAMEMODE = GAMEMODE_NAMES[Math.min(GAMEMODE_NAMES.indexOf(GAMEMODE)+1, GAMEMODE_NAMES.length-1)];
+        new Button(0, 0, button_width/3, button_height*(2/3), button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, ">", font_size*(3/4), function () {  
+            pushCookies();
+            let loc = MENUS.main.contents[1].contents[1].contents
+            if(GAMEMODE_NAMES.indexOf(GAMEMODE)+1 == GAMEMODE_NAMES.length){
+              GAMEMODE = GAMEMODE_NAMES[0]
+            } else {
+              GAMEMODE = GAMEMODE_NAMES[GAMEMODE_NAMES.indexOf(GAMEMODE)+1];
+            }
             GAMERULES = {...GAME_MODES[GAMEMODE]};
-            loadCookies();
             scaleMenus();
+            loadCookies();
         }, false),
       ]),
 
@@ -481,7 +501,7 @@ function scaleMenus(){
         MENUS.main.contents[1].contents[3] = new HBox(0, 0, button_width/5.5, [
             new Text(0, 0, button_width / 2, button_height/2, "LEVEL:", font_size*(3/4)),
             new HBox(0, 0, -button_width/6, [
-                new Button(-button_width/12, 0, button_width/6, button_height/2, button_radius/2, [BUTTON_BACKGROUND, MENU_BUTTON_COLOUR][(gamestate.startLevel<=1)?0:1], BUTTON_STROKE, [BUTTON_BACKGROUND, BUTTON_SELECT_COLOUR][(gamestate.startLevel<=1)?0:1], "<", font_size*(3/4), function () {
+                new Button(-button_width/12, 0, button_width/6, button_height/2, button_radius/2, [BUTTON_BACKGROUND, MENU_BUTTON_COLOUR][(gamestate.startLevel<=1)?0:1], BUTTON_STROKE, [BUTTON_BACKGROUND, BUTTON_SELECT_COLOUR][(gamestate.startLevel<=1)?0:1], "-", font_size*(3/4), function () {
                     let loc = MENUS.main.contents[1].contents[3].contents[1].contents;
                     gamestate.startLevel = Math.max(gamestate.startLevel-1, 1);
                     gamestate.currentLevel = gamestate.startLevel;
@@ -490,7 +510,7 @@ function scaleMenus(){
                     if(gamestate.startLevel <= 1){loc[0].fillColor = BUTTON_BACKGROUND; loc[0].selectColor = BUTTON_BACKGROUND;}
                 }, false),
                 new CenteredText(0, 0, button_width/2, button_height/2, gamestate.startLevel.toString(), font_size*(3/4)),
-                new Button(button_width/12, 0, button_width/6, button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, ">", font_size*(3/4), function () {
+                new Button(button_width/12, 0, button_width/6, button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, "+", font_size*(3/4), function () {
                     let loc = MENUS.main.contents[1].contents[3].contents[1].contents;
                     gamestate.startLevel += 1;
                     gamestate.currentLevel = gamestate.startLevel;
@@ -509,7 +529,7 @@ function scaleMenus(){
         MENUS.main.contents[1].contents[3] = new HBox(0, 0, button_width/5.5, [
             new Text(0, 0, button_width / 2, button_height/2, "LINES:", font_size*(3/4)),
             new HBox(0, 0, -button_width/6, [
-              new Button(-button_width/12, 0, button_width/6, button_height/2, button_radius/2, [BUTTON_BACKGROUND, MENU_BUTTON_COLOUR][(GAMERULES.lineLimitValue<=1)?0:1], BUTTON_STROKE, [BUTTON_BACKGROUND, BUTTON_SELECT_COLOUR][(GAMERULES.lineLimitValue<=1)?0:1], "<", font_size*(3/4), function () {
+              new Button(-button_width/12, 0, button_width/6, button_height/2, button_radius/2, [BUTTON_BACKGROUND, MENU_BUTTON_COLOUR][(GAMERULES.lineLimitValue<=1)?0:1], BUTTON_STROKE, [BUTTON_BACKGROUND, BUTTON_SELECT_COLOUR][(GAMERULES.lineLimitValue<=1)?0:1], "-", font_size*(3/4), function () {
                 let loc = MENUS.main.contents[1].contents[3].contents[1].contents;
                 let incr = 10
                 if(GAMERULES.lineLimitValue < 20) {incr = 1}
@@ -518,7 +538,7 @@ function scaleMenus(){
                 if(GAMERULES.lineLimitValue <= 1){loc[0].fillColor = BUTTON_BACKGROUND; loc[0].selectColor = BUTTON_BACKGROUND;}
               }, false),
               new CenteredText(0, 0, button_width/2, button_height/2, GAMERULES.lineLimitValue.toString(), font_size*(3/4)),
-              new Button(button_width/12, 0, button_width/6, button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, ">", font_size*(3/4), function () {
+              new Button(button_width/12, 0, button_width/6, button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, "+", font_size*(3/4), function () {
                 let loc = MENUS.main.contents[1].contents[3].contents[1].contents;
                 let incr = 10
                 if(GAMERULES.lineLimitValue < 10) {incr = 1}
@@ -534,14 +554,14 @@ function scaleMenus(){
         MENUS.main.contents[1].contents[3] = new HBox(0, 0, button_width/5.5, [
             new Text(0, 0, button_width / 2, button_height/2, "TIME:", font_size*(3/4)),
             new HBox(0, 0, -button_width/6, [
-                new Button(-button_width/12, 0, button_width/6, button_height/2, button_radius/2, [BUTTON_BACKGROUND, MENU_BUTTON_COLOUR][(GAMERULES.countdownValue<=60000)?0:1], BUTTON_STROKE, [BUTTON_BACKGROUND, BUTTON_SELECT_COLOUR][(GAMERULES.countdownValue<=60000)?0:1], "<", font_size*(3/4), function () {
+                new Button(-button_width/12, 0, button_width/6, button_height/2, button_radius/2, [BUTTON_BACKGROUND, MENU_BUTTON_COLOUR][(GAMERULES.countdownValue<=60000)?0:1], BUTTON_STROKE, [BUTTON_BACKGROUND, BUTTON_SELECT_COLOUR][(GAMERULES.countdownValue<=60000)?0:1], "-", font_size*(3/4), function () {
                   let loc = MENUS.main.contents[1].contents[3].contents[1].contents;
                   GAMERULES.countdownValue = Math.max(GAMERULES.countdownValue-60000, 60000);
                   loc[1].text = (GAMERULES.countdownValue/60000).toFixed() + " MIN";
                   if((GAMERULES.countdownValue/60000) <= 1){loc[0].fillColor = BUTTON_BACKGROUND; loc[0].selectColor = BUTTON_BACKGROUND;}
                 }, false),
                 new CenteredText(0, 0, button_width/2, button_height/2, (GAMERULES.countdownValue/60000).toFixed() + " MIN", font_size*(3/4)),
-                new Button(button_width/12, 0, button_width/6, button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, ">", font_size*(3/4), function () {
+                new Button(button_width/12, 0, button_width/6, button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, "+", font_size*(3/4), function () {
                   let loc = MENUS.main.contents[1].contents[3].contents[1].contents;
                   GAMERULES.countdownValue += 60000;
                   loc[1].text = (GAMERULES.countdownValue/60000).toFixed() + " MIN";
