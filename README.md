@@ -11,7 +11,7 @@ Cohesive Tetris clone with sound effects, ghost preview, results and multiple ga
 * Ctrl or Z to rotate anti-clockwise
 * Space to hard drop
 * Down arrow or S for soft drop
-* Shift or C for soft drop
+* Shift or C for hold
 
 ## Game modes
 * Marathon: Standard Tetris mode of increasingly fast levels. You level up for every 10 lines cleared. Custom speed curve. 
