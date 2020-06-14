@@ -494,6 +494,7 @@ function scaleMenus(){
                     let loc = MENUS.main.contents[1].contents[3].contents[1].contents;
                     gamestate.startLevel += 1;
                     gamestate.currentLevel = gamestate.startLevel;
+                    gamestate.levelSpeed = LEVEL_SPEED_TABLE[Math.min(LEVEL_SPEED_TABLE.length - 1, gamestate.currentLevel-1)];
                     loc[1].text = gamestate.startLevel.toString();
                     loc[0].fillColor = MENU_BUTTON_COLOUR; loc[0].selectColor = BUTTON_SELECT_COLOUR;
                 }, false),
