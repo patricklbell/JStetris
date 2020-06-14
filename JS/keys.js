@@ -78,11 +78,12 @@ function swapHold(){
         
         if(!gamestate["held"]){
             gamestate["player"] = new Player(gamestate["pieceGenerator"].next());
-            lockResets = 0;
-            lockBuffer = 0;
         } else {
             gamestate["player"] = new Player(tmp);
         }
+        lockResets = 0;
+        lockBuffer = 0;
+        
         gamestate["switched"] = true;
         gamestate["held"] = true;
     } else {if(SOUND_EFFECTS){AUDIO["holdfail"].cloneNode().play();}}
