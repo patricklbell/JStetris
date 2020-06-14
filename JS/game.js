@@ -185,7 +185,8 @@ function gameloop () {
       if (gamestate["player"].testCollision(gamestate["board"]) === true) {
         lockDelay = true;
         gamestate["player"].unapply();
-      } else if (fallDelayBuffer > gamestate["levelSpeed"]){
+      } else if ((GAMERULES["levels"] && (fallDelayBuffer > gamestate["levelSpeed"])) ||
+       (!GAMERULES["levels"] && (fallDelayBuffer > DEFAULT_GAMESTATE["levelSpeed"]))){
         gamestate["player"].apply();
         gamestate["player"].lastAction = "drop";
         fallDelayBuffer = 0;
