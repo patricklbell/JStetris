@@ -153,5 +153,27 @@ class Player {
       this.unapply();
       return false;
     }
+    testKicksHalf (board){
+      if(!(this.name === "O" || this.name === "Z" || this.name === "S"  || this.name === "I")){
+        let ogPiece = this.piece.slice();
+        let ogPos = this.pos.slice();
+        let ogRot = this.rot.valueOf();
+        
+        if(this.testKicksClockwise(board)){
+          this.apply()
+          if(this.testKicksClockwise(board)){
+            this.rot_chn = (ogRot + 2) % 4;
+            console.log(true);
+            return true;
+          }
+        }
+
+        this.rot = ogRot;
+        this.piece = ogPiece;
+        this.pos = ogPos;
+      }
+      console.log(false);
+      return false;
+    }
   }
   

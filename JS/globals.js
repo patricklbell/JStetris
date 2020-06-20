@@ -5,8 +5,21 @@ var fontSheet = document.getElementById('fontsheet');
 var canvas = document.getElementById('canvas');
 var fieldbg = document.getElementById('fieldbg');
 var canvasbg = document.getElementById('canvasbg');
-
 var ctx = canvas.getContext('2d');
+
+// Time
+var lastUpdate = Date.now(), now = lastUpdate, dt = 0, id, size;
+
+// Key
+var lockBuffer = 0, lockDelay = false, lockResets = 0;
+var fallDelayBuffer = 0, lastHandledKeyBuffer = 0, shiftDelayBuffer = 0;
+var keyPressed = 0, keyBuffer = []; 
+
+var paused = true, inGame = false;
+
+// Rewind buffer
+var gamestate_buffer = [];
+
 var SCREEN_SHAKE = true, MUSIC = true, SOUND_EFFECTS = true, GHOST = true, unpausing = false;
 var AUTO_REPEAT_RATE = 25, DELAY_AUTO_SHIFT = 125, LOCK_DELAY = 500, MAX_LOCK_RESETS = 15;
 const HEIGHT = 20, WIDTH = 10, BUFFER_HEIGHT = 4, LEVEL_LENGTH_LINES = 10;

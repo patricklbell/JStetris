@@ -1,17 +1,4 @@
 'use strict';
-// Time
-var lastUpdate = Date.now(), now = lastUpdate, dt = 0, id, size;
-
-// Key
-var lockBuffer = 0, lockDelay = false, lockResets = 0;
-var fallDelayBuffer = 0, lastHandledKeyBuffer = 0, shiftDelayBuffer = 0;
-var keyPressed = 0, keyBuffer = []; 
-
-var paused = true, inGame = false;
-
-// Rewind buffer
-var gamestate_buffer = [];
-
 function resize() {
   let wsize = getWindowSize();
   size = Math.floor(wsize.height / HEIGHT);
@@ -129,26 +116,26 @@ function init () {
   unpause(ctx);
 }
 
-function gameloop () {
+function gameloop (time) {
   id = window.requestAnimationFrame(gameloop);
   
-  now = Date.now();
+  now = time;
   dt = (now - lastUpdate);
   lastUpdate = now;
   
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  updatePreview();
+  if(gamestate.board !== undefined) {gamestate.board.render(ctx)};
   if(inGame){
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     preShake();
-    gamestate.board.render(ctx);
     gamestate.player.render(ctx, gamestate["board"]);
     postShake();
-    updatePreview();
   }
   if(paused && MENUS[currentMenu].render !== undefined) {MENUS[currentMenu].render(ctx, 0, 0);}
   
   if(!paused && inGame && unpausing === false){
     if(keyBindings[keyPressed] !== undefined){
-      if(shiftDelayBuffer <= DELAY_AUTO_SHIFT || keyNonRepeaters.indexOf(keyPressed) !== -1){
+      if(shiftDelayBuffer <= DELAY_AUTO_SHIFT || keyNonRepeaters.indexOf(keyBindings[keyPressed]) !== -1){
         if(shiftDelayBuffer === 0){
           keyBindings[keyPressed]();
         }
@@ -230,5 +217,5 @@ function gameloop () {
 }
 window.onload = function() {
   var context = new AudioContext();
-  gameloop();
+  requestAnimationFrame(gameloop);
 }

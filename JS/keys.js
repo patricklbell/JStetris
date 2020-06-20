@@ -102,6 +102,13 @@ function antiClockTurnAndKick(){
         gamestate["player"].lastAction = "rotate";
     } else {if(SOUND_EFFECTS){AUDIO["rotfail"].cloneNode().play();}}
 }
+function halfTurnAndKick(){
+    if(gamestate["player"].testKicksHalf(gamestate["board"])){
+        if(SOUND_EFFECTS){AUDIO["rotate"].cloneNode().play();}
+        gamestate["player"].apply();
+        gamestate["player"].lastAction = "rotate";
+    } else {if(SOUND_EFFECTS){AUDIO["rotfail"].cloneNode().play();}}
+}
 
 function softdrop(){
     gamestate["player"].move(0, 1);
@@ -191,23 +198,42 @@ function harddrop(){
     lockBuffer = 0;
 }
 
-var keyBindings = {
+var DEFAULT_KEY_BINDINGS = {
     "KeyC" : swapHold,
     "ShiftLeft" : swapHold,
-    "ShiftRight" : swapHold,
-    "ArrowDown" : softdrop,
-    "keyS" : softdrop,
-    "ArrowLeft" : moveLeft,
-    "keyA" : moveLeft,
-    "ArrowRight" : moveRight,
-    "keyD" : moveRight,
-    "Space" : harddrop,
     "ArrowUp" : clockTurnAndKick,
-    "keyW" : clockTurnAndKick,
-    "KeyX" : clockTurnAndKick,
+    "ArrowDown" : softdrop,
+    "ArrowLeft" : moveLeft,
+    "ArrowRight" : moveRight,
+    "Space" : harddrop,
     "ControlLeft" : antiClockTurnAndKick,
-    "ControlRight" : antiClockTurnAndKick,
     "KeyZ" : antiClockTurnAndKick,
-};
+    "KeyX" : halfTurnAndKick,
+    "KeyC" : clockTurnAndKick,
+}
 
-var keyNonRepeaters = ["Space", "KeyC", "ShiftLeft", "ArrowUp", "KeyX", "ControlLeft", "ControlRight","KeyZ"];
+function bindInput(newKey, func, oldMappings){
+    for (const key in oldMappings) {
+        if (oldMappings.hasOwnProperty(key)) {
+            if(oldMappings[key] == func){
+                delete oldMappings[key];
+            }
+        }
+    }
+    oldMappings[newKey] = func;
+}
+function getKeyFromFunc(func, mappings){
+    let result = "";
+    for (const key in mappings) {
+        if (mappings.hasOwnProperty(key)) {
+            if(mappings[key] == func){
+                result += key.toUpperCase() + " ";
+            }
+        }
+    }
+    return result;
+}
+
+var keyBindings = Object.assign({}, DEFAULT_KEY_BINDINGS);
+
+var keyNonRepeaters = [swapHold, clockTurnAndKick, antiClockTurnAndKick, halfTurnAndKick, harddrop];

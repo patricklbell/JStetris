@@ -1,4 +1,4 @@
-class Button{
+class Button {
     /**
      * Constructs a button object which is rendered with this.render()
      * @param {CanvasRenderingContext2D} ctx
@@ -22,12 +22,23 @@ class Button{
      * @param {String} [behindColor = "#000000"] Color to fill behind border gap
      * @param {Number} [borderGap = 0] Color to fill behind border gap
      */
-    constructor(x, y, width, height, radius=5, fillColor="#000000", strokeColor="#000000", selectColor="#00FF00", text="", fontSize=10, onclick=function(){}, gap=false, behindColor="#000000", borderGap=0){
+    constructor(x, y, width, height, radius = 5, fillColor = "#000000", strokeColor = "#000000", selectColor = "#00FF00", text = "", fontSize = 10, onclick = function () {}, gap = false, behindColor = "#000000", borderGap = 0) {
+        this.hide = false;
         if (typeof radius === 'number') {
-            this.r = {tl: radius, tr: radius, br: radius, bl: radius};
+            this.r = {
+                tl: radius,
+                tr: radius,
+                br: radius,
+                bl: radius
+            };
         } else {
             radius = {};
-            let defaultRadius = {tl: 0, tr: 0, br: 0, bl: 0};
+            let defaultRadius = {
+                tl: 0,
+                tr: 0,
+                br: 0,
+                bl: 0
+            };
             for (var side in defaultRadius) {
                 this.r[side] = radius[side] || defaultRadius[side];
             }
@@ -46,63 +57,68 @@ class Button{
         this.gap = gap;
         this.borderGap = borderGap;
     }
-    render(ctx, relX, relY, selected){
-        ctx.lineWidth = 0.5;
-        if(this.gap){
-            let gapX = this.x + relX - this.borderGap/2;
-            let gapY = this.y + relY - this.borderGap/2;
+    render(ctx, relX, relY, selected) {
+        if (this.hide === false) {
+            ctx.lineWidth = 0.5;
+            if (this.gap) {
+                let gapX = this.x + relX - this.borderGap / 2;
+                let gapY = this.y + relY - this.borderGap / 2;
+                ctx.beginPath();
+                ctx.moveTo(gapX + (this.r.tl + this.borderGap / 2), gapY);
+                ctx.lineTo(gapX + this.w + this.borderGap - (this.r.tr + this.borderGap / 2), gapY);
+                ctx.quadraticCurveTo(gapX + this.w + this.borderGap, gapY, gapX + this.w + this.borderGap, gapY + (this.r.tr + this.borderGap / 2));
+                ctx.lineTo(gapX + this.w + this.borderGap, gapY + this.h + this.borderGap - (this.r.br + this.borderGap / 2));
+                ctx.quadraticCurveTo(gapX + this.w + this.borderGap, gapY + this.h + this.borderGap, gapX + this.w + this.borderGap - (this.r.br + this.borderGap / 2), gapY + this.h + this.borderGap);
+                ctx.lineTo(gapX + (this.r.bl + this.borderGap / 2), gapY + this.h + this.borderGap);
+                ctx.quadraticCurveTo(gapX, gapY + this.h + this.borderGap, gapX, gapY + this.h + this.borderGap - (this.r.bl + this.borderGap / 2));
+                ctx.lineTo(gapX, gapY + (this.r.tl + this.borderGap / 2));
+                ctx.quadraticCurveTo(gapX, gapY, gapX + (this.r.tl + this.borderGap / 2), gapY);
+                ctx.closePath();
+                ctx.fillStyle = this.behindColor;
+                ctx.fill();
+                ctx.strokeStyle = this.strokeColor;
+                ctx.stroke();
+            }
+
+            let trueX = this.x + relX;
+            let trueY = this.y + relY;
             ctx.beginPath();
-            ctx.moveTo(gapX + (this.r.tl+this.borderGap/2), gapY);
-            ctx.lineTo(gapX + this.w+this.borderGap - (this.r.tr+this.borderGap/2), gapY);
-            ctx.quadraticCurveTo(gapX + this.w+this.borderGap, gapY, gapX + this.w+this.borderGap, gapY + (this.r.tr+this.borderGap/2));
-            ctx.lineTo(gapX + this.w+this.borderGap, gapY + this.h+this.borderGap - (this.r.br+this.borderGap/2));
-            ctx.quadraticCurveTo(gapX + this.w+this.borderGap, gapY + this.h+this.borderGap, gapX + this.w+this.borderGap - (this.r.br+this.borderGap/2), gapY + this.h+this.borderGap);
-            ctx.lineTo(gapX + (this.r.bl+this.borderGap/2), gapY + this.h+this.borderGap);
-            ctx.quadraticCurveTo(gapX, gapY + this.h+this.borderGap, gapX, gapY + this.h+this.borderGap - (this.r.bl+this.borderGap/2));
-            ctx.lineTo(gapX, gapY + (this.r.tl+this.borderGap/2));
-            ctx.quadraticCurveTo(gapX, gapY, gapX + (this.r.tl+this.borderGap/2), gapY);
+            ctx.moveTo(trueX + this.r.tl, trueY);
+            ctx.lineTo(trueX + this.w - this.r.tr, trueY);
+            ctx.quadraticCurveTo(trueX + this.w, trueY, trueX + this.w, trueY + this.r.tr);
+            ctx.lineTo(trueX + this.w, trueY + this.h - this.r.br);
+            ctx.quadraticCurveTo(trueX + this.w, trueY + this.h, trueX + this.w - this.r.br, trueY + this.h);
+            ctx.lineTo(trueX + this.r.bl, trueY + this.h);
+            ctx.quadraticCurveTo(trueX, trueY + this.h, trueX, trueY + this.h - this.r.bl);
+            ctx.lineTo(trueX, trueY + this.r.tl);
+            ctx.quadraticCurveTo(trueX, trueY, trueX + this.r.tl, trueY);
             ctx.closePath();
-            ctx.fillStyle = this.behindColor;
+
+            if (selected) {
+                ctx.fillStyle = this.selectColor;
+            } else {
+                ctx.fillStyle = this.fillColor
+            }
             ctx.fill();
             ctx.strokeStyle = this.strokeColor;
             ctx.stroke();
-        }
 
-        let trueX = this.x + relX;
-        let trueY = this.y + relY;
-        ctx.beginPath();
-        ctx.moveTo(trueX + this.r.tl, trueY);
-        ctx.lineTo(trueX + this.w - this.r.tr, trueY);
-        ctx.quadraticCurveTo(trueX + this.w, trueY, trueX + this.w, trueY + this.r.tr);
-        ctx.lineTo(trueX + this.w, trueY + this.h - this.r.br);
-        ctx.quadraticCurveTo(trueX + this.w, trueY + this.h, trueX + this.w - this.r.br, trueY + this.h);
-        ctx.lineTo(trueX + this.r.bl, trueY + this.h);
-        ctx.quadraticCurveTo(trueX, trueY + this.h, trueX, trueY + this.h - this.r.bl);
-        ctx.lineTo(trueX, trueY + this.r.tl);
-        ctx.quadraticCurveTo(trueX, trueY, trueX + this.r.tl, trueY);
-        ctx.closePath();
+            ctx.drawText(this.text, trueX + this.w / 2 - this.fontSize * this.text.length / 2, trueY + this.h / 2 - this.fontSize / 2, MENU_FONT_STYLE, this.fontSize);
 
-        if(selected) {ctx.fillStyle = this.selectColor;}
-        else {ctx.fillStyle = this.fillColor}
-        ctx.fill();
-        ctx.strokeStyle = this.strokeColor;
-        ctx.stroke();
-
-        ctx.drawText(this.text, trueX + this.w/2 - this.fontSize*this.text.length/2, trueY + this.h/2 - this.fontSize/2, MENU_FONT_STYLE, this.fontSize);
-
-        if(selected && clicked && this.onclick !== undefined){
-            this.onClick();
+            if (selected && clicked && this.onclick !== undefined) {
+                this.onClick();
+            }
         }
     }
-    isInside(x, y, relX=0, relY=0){
-        return x > this.x+relX && x < this.x+relX+this.w && y < this.y+relY+this.h && y > this.y+relY;
+    isInside(x, y, relX = 0, relY = 0) {
+        return x > this.x + relX && x < this.x + relX + this.w && y < this.y + relY + this.h && y > this.y + relY;
     }
-    onClick(){
+    onClick() {
         this.onclick(this);
     }
 }
 
-class Panel{
+class Panel {
     /**
      * Constructs a panel object which is rendered with this.render()
      * @param {CanvasRenderingContext2D} ctx
@@ -119,12 +135,23 @@ class Panel{
      * @param {String} [fillColor = "#000000"] Color to fill the rectangle
      * @param {String} [strokeColor = "#000000"] Color to outline rectangle
      */
-    constructor(x, y, width, height, radius=5, fillColor="#000000", strokeColor="#000000"){
+    constructor(x, y, width, height, radius = 5, fillColor = "#000000", strokeColor = "#000000") {
+        this.hide = false;
         if (typeof radius === 'number') {
-            this.r = {tl: radius, tr: radius, br: radius, bl: radius};
+            this.r = {
+                tl: radius,
+                tr: radius,
+                br: radius,
+                bl: radius
+            };
         } else {
             radius = {};
-            let defaultRadius = {tl: 0, tr: 0, br: 0, bl: 0};
+            let defaultRadius = {
+                tl: 0,
+                tr: 0,
+                br: 0,
+                bl: 0
+            };
             for (var side in defaultRadius) {
                 this.r[side] = radius[side] || defaultRadius[side];
             }
@@ -136,29 +163,31 @@ class Panel{
         this.fillColor = fillColor;
         this.strokeColor = strokeColor;
     }
-    render(ctx, relX, relY, selected){
-        let trueX = this.x + relX;
-        let trueY = this.y + relY;
-        ctx.beginPath();
-        ctx.moveTo(trueX + this.r.tl, trueY);
-        ctx.lineTo(trueX + this.w - this.r.tr, trueY);
-        ctx.quadraticCurveTo(trueX + this.w, trueY, trueX + this.w, trueY + this.r.tr);
-        ctx.lineTo(trueX + this.w, trueY + this.h - this.r.br);
-        ctx.quadraticCurveTo(trueX + this.w, trueY + this.h, trueX + this.w - this.r.br, trueY + this.h);
-        ctx.lineTo(trueX + this.r.bl, trueY + this.h);
-        ctx.quadraticCurveTo(trueX, trueY + this.h, trueX, trueY + this.h - this.r.bl);
-        ctx.lineTo(trueX, trueY + this.r.tl);
-        ctx.quadraticCurveTo(trueX, trueY, trueX + this.r.tl, trueY);
-        ctx.closePath();
+    render(ctx, relX, relY, selected) {
+        if (this.hide === false) {
+            let trueX = this.x + relX;
+            let trueY = this.y + relY;
+            ctx.beginPath();
+            ctx.moveTo(trueX + this.r.tl, trueY);
+            ctx.lineTo(trueX + this.w - this.r.tr, trueY);
+            ctx.quadraticCurveTo(trueX + this.w, trueY, trueX + this.w, trueY + this.r.tr);
+            ctx.lineTo(trueX + this.w, trueY + this.h - this.r.br);
+            ctx.quadraticCurveTo(trueX + this.w, trueY + this.h, trueX + this.w - this.r.br, trueY + this.h);
+            ctx.lineTo(trueX + this.r.bl, trueY + this.h);
+            ctx.quadraticCurveTo(trueX, trueY + this.h, trueX, trueY + this.h - this.r.bl);
+            ctx.lineTo(trueX, trueY + this.r.tl);
+            ctx.quadraticCurveTo(trueX, trueY, trueX + this.r.tl, trueY);
+            ctx.closePath();
 
-        ctx.fillStyle = this.fillColor
-        ctx.fill();
-        ctx.strokeStyle = this.strokeColor;
-        ctx.stroke();
+            ctx.fillStyle = this.fillColor
+            ctx.fill();
+            ctx.strokeStyle = this.strokeColor;
+            ctx.stroke();
+        }
     }
 }
 
-class CenteredText{
+class CenteredText {
     /**
      * Constructs a panel object which is rendered with this.render()
      * @param {CanvasRenderingContext2D} ctx
@@ -168,7 +197,8 @@ class CenteredText{
      * @param {Number} height The height of the rectangle
      * @param {String} text The text to display
      */
-    constructor(x, y, width, height, text="", fontSize=10){
+    constructor(x, y, width, height, text = "", fontSize = 10) {
+        this.hide = false;
         this.x = x;
         this.y = y;
         this.w = width;
@@ -176,12 +206,14 @@ class CenteredText{
         this.text = text;
         this.fontSize = fontSize;
     }
-    render(ctx, relX, relY, selected){
-        ctx.drawText(this.text, relX+this.x + this.w/2 - this.fontSize*this.text.length/2, relY+this.y + this.h/2 - this.fontSize/2, MENU_FONT_STYLE, this.fontSize);
+    render(ctx, relX, relY, selected) {
+        if (this.hide === false) {
+            ctx.drawText(this.text, relX + this.x + this.w / 2 - this.fontSize * this.text.length / 2, relY + this.y + this.h / 2 - this.fontSize / 2, MENU_FONT_STYLE, this.fontSize);
+        }
     }
 }
 
-class Text{
+class Text {
     /**
      * Constructs a panel object which is rendered with this.render()
      * @param {CanvasRenderingContext2D} ctx
@@ -191,7 +223,8 @@ class Text{
      * @param {Number} height The height of the rectangle
      * @param {String} text The text to display
      */
-    constructor(x, y, width, height, text="", fontSize=10){
+    constructor(x, y, width, height, text = "", fontSize = 10) {
+        this.hide = false;
         this.x = x;
         this.y = y;
         this.w = width;
@@ -199,12 +232,14 @@ class Text{
         this.text = text;
         this.fontSize = fontSize;
     }
-    render(ctx, relX, relY, selected){
-        ctx.drawText(this.text, relX+this.x, relY+this.y, MENU_FONT_STYLE, this.fontSize);
+    render(ctx, relX, relY, selected) {
+        if (this.hide === false) {
+            ctx.drawText(this.text, relX + this.x, relY + this.y, MENU_FONT_STYLE, this.fontSize);
+        }
     }
 }
 
-class Div{
+class Div {
     /**
      * Constructs a panel object which is rendered with this.render()
      * @param {CanvasRenderingContext2D} ctx
@@ -212,7 +247,8 @@ class Div{
      * @param {Number} y The top left y coordinate
      * @param {Array} contents List of elements within div
      */
-    constructor(x, y, contents){
+    constructor(x, y, contents) {
+        this.hide = false;
         this.x = x;
         this.y = y;
         this.contents = contents;
@@ -221,25 +257,32 @@ class Div{
         this.h = 0;
         for (var key of Object.keys(this.contents)) {
             let e = this.contents[key];
-            this.w += e.w;
-            this.h += e.h;
+            if(e.hide === false){
+                this.w += e.w;
+                this.h += e.h;
+            }
         }
     }
-    render(ctx, relX, relY, selected){
-        let trueX = relX + this.x;
-        let trueY = relY + this.y;
-        for (var key of Object.keys(this.contents)) {
-            let e = this.contents[key];
-            if(e.constructor.name === "Button"){
-              e.render(ctx, trueX, trueY, e.isInside(mouseX, mouseY, trueX, trueY));
-            } else {
-              e.render(ctx, trueX, trueY);
+    render(ctx, relX, relY) {
+        if (this.hide === false) {
+            let trueX = relX + this.x;
+            let trueY = relY + this.y;
+            for (var key of Object.keys(this.contents)) {
+                let e = this.contents[key];
+                if(e.hide === false){
+                    if (e.constructor.name === "Button") {
+                        this.hide = false;
+                        e.render(ctx, trueX, trueY, e.isInside(mouseX, mouseY, trueX, trueY));
+                    } else {
+                        e.render(ctx, trueX, trueY);
+                    }
+                }
             }
-          }
+        }
     }
 }
 
-class VBox{
+class VBox {
     /**
      * Constructs equally vertically spaced list from contents, render with this.render()
      * @param {CanvasRenderingContext2D} ctx
@@ -248,37 +291,47 @@ class VBox{
      * @param {Number} seperator Vertical space between elements
      * @param {Array} contents List of elements within div
      */
-    constructor(x, y, sep=0, contents){
+    constructor(x, y, sep = 0, contents) {
+        this.hide = false;
         this.x = x;
         this.y = y;
         this.sep = sep;
         this.contents = contents;
-        
+
         this.w = 0;
         this.h = 0;
         for (var key of Object.keys(this.contents)) {
             let e = this.contents[key];
-            if(this.w < e.w){this.w = e.w};
-            this.h += e.h;
+            if(e.hide === false){
+                if (this.w < e.w) {
+                    this.w = e.w
+                };
+                this.h += e.h;
+            }
         }
     }
-    render(ctx, relX, relY, selected){
-        let yOffset = 0;
-        let trueX = relX + this.x;
-        let trueY = relY + this.y;
-        for (var key of Object.keys(this.contents)) {
-            let e = this.contents[key];
-            if(e.constructor.name === "Button"){
-              e.render(ctx, trueX, trueY+yOffset, e.isInside(mouseX, mouseY, trueX, trueY+yOffset));
-            } else {
-              e.render(ctx, trueX, trueY+yOffset);
+    render(ctx, relX, relY, selected) {
+        if (this.hide === false) {
+            let yOffset = 0;
+            let trueX = relX + this.x;
+            let trueY = relY + this.y;
+            for (var key of Object.keys(this.contents)) {
+                let e = this.contents[key];
+                if(e.hide === false){
+                    if (e.constructor.name === "Button") {
+                        this.hide = false;
+                        e.render(ctx, trueX, trueY + yOffset, e.isInside(mouseX, mouseY, trueX, trueY + yOffset));
+                    } else {
+                        e.render(ctx, trueX, trueY + yOffset);
+                    }
+                    yOffset += e.h + this.sep;
+                }
             }
-            yOffset += e.h + this.sep;
         }
     }
 }
 
-class HBox{
+class HBox {
     /**
      * Constructs equally horizontally spaced list from contents, render with this.render()
      * @param {CanvasRenderingContext2D} ctx
@@ -287,32 +340,42 @@ class HBox{
      * @param {Number} seperator Horizontal space between elements
      * @param {Array} contents List of elements within div
      */
-    constructor(x, y, sep=0, contents){
+    constructor(x, y, sep = 0, contents) {
+        this.hide = false;
         this.x = x;
         this.y = y;
         this.sep = sep
         this.contents = contents;
-        
+
         this.w = 0;
         this.h = 0;
         for (var key of Object.keys(this.contents)) {
             let e = this.contents[key];
-            if(this.h < e.h){this.h = e.h};
-            this.w += e.w;
+            if(e.hide === false){
+                if (this.h < e.h) {
+                    this.h = e.h
+                };
+                this.w += e.w;
+            }
         }
     }
-    render(ctx, relX, relY, selected){
-        let trueX = relX + this.x;
-        let trueY = relY + this.y;
-        let xOffset = 0;
-        for (var key of Object.keys(this.contents)) {
-            let e = this.contents[key];
-            if(e.constructor.name === "Button"){
-              e.render(ctx, trueX+xOffset, trueY, e.isInside(mouseX, mouseY, trueX+xOffset, trueY));
-            } else {
-              e.render(ctx, trueX+xOffset, trueY);
+    render(ctx, relX, relY, selected) {
+        if (this.hide === false) {
+            let trueX = relX + this.x;
+            let trueY = relY + this.y;
+            let xOffset = 0;
+            for (var key of Object.keys(this.contents)) {
+                let e = this.contents[key];
+                if(e.hide === false){
+                    if (e.constructor.name === "Button") {
+                        this.hide = false;
+                        e.render(ctx, trueX + xOffset, trueY, e.isInside(mouseX, mouseY, trueX + xOffset, trueY));
+                    } else {
+                        e.render(ctx, trueX + xOffset, trueY);
+                    }
+                    xOffset += e.w + this.sep;
+                }
             }
-            xOffset += e.w + this.sep;
         }
     }
 }

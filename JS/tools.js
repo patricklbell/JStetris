@@ -1,19 +1,5 @@
 'use strict';
 
-// This function handles arrays and objects
-function eachRecursive(obj, x, y, func){
-    for (var k in obj){
-        if (typeof obj[k] == "object" && obj[k] !== null){
-            let offsetX = x;
-            let offsetY = y;
-            func(obj[k], x, y);
-            if(typeof(obj[k].x) === "number") {offsetX += obj[k].x;}
-            if(typeof(obj[k].y) === "number") {offsetY += obj[k].y;}
-            eachRecursive(obj[k], offsetX, offsetY, func);
-        }
-    }
-}
-
 var getWindowSize = (function() {
     var docEl = document.documentElement,
         IS_BODY_ACTING_ROOT = docEl && docEl.clientHeight === 0;
@@ -123,6 +109,29 @@ function postShake() {
   ctx.restore();
 }
 
+function pollUserInput(updateObject, action){
+  let func = function(){
+    text.render(ctx, 0, 0)
+    if(keyPressed !== 0){
+      requestAnimationFrame(gameloop);
+      bindInput(keyPressed, action, keyBindings);
+      updateObject.text = keyPressed.toUpperCase();
+      ctx.globalAlpha = 1.0;
+      return true;
+    } else {
+      requestAnimationFrame(func);
+    }
+  }
+  cancelAnimationFrame(id);
+  ctx.globalAlpha = 0.5;
+  ctx.fillRect(0,0,ctx.canvas.width,ctx.canvas.height);
+  ctx.globalAlpha = 1.0;
+  let text = new CenteredText(0, 0, ctx.canvas.width, ctx.canvas.height, "PRESS DESIRED KEY", MENU_FONT_SIZE*ctx.canvas.height);
+  ctx.globalAlpha = 0.5;
+  
+  return func();
+}
+
 function startShake(coefficient) {
    shakeStartTime=Date.now();
    shakeCoefficient=coefficient;
@@ -156,15 +165,60 @@ function endGame(){
     lockBuffer = 0, lockDelay = false, lockResets = 0;
     fallDelayBuffer = 0, lastHandledKeyBuffer = 0, shiftDelayBuffer = 0;
     keyPressed = 0, keyBuffer = [];
+    inGame = false;
 
     paused = true;
     inGame = false;
-    currentMenu = "main";
-    AUDIO["theme"].pause();
+    if(GAMERULES.results){
+      AUDIO["theme"].pause();
+      showResults();
+    } else {
+      currentMenu = "main";
+      AUDIO["theme"].pause();
+  
+      pushCookies();
+      gamestate = {...DEFAULT_GAMESTATE};
+      loadCookies();
+    }
+}
 
-    pushCookies();
-    gamestate = {...DEFAULT_GAMESTATE};
-    loadCookies();
+function showResults(){
+  let loc = MENUS.results.contents[1].contents;
+  let i=0;
+  if(GAMERULES.resultsLevel){
+    loc[i+1].text = "LEVEL: "+gamestate.currentLevel
+    loc[i+1].hide = false;
+    i++;
+  }
+  if(GAMERULES.resultsLines){
+    loc[i+1].text = "LINES CLEARED: "+gamestate.board.linesCleared
+    loc[i+1].hide = false;
+    i++;
+  }
+  if(GAMERULES.resultsScore){
+    loc[i+1].text = "SCORE: "+gamestate.score
+    loc[i+1].hide = false;
+    i++;
+  }
+  if(GAMERULES.resultsTimer){
+    loc[i+1].text = "TIME: "+msToTime(now - gamestate["playTimer"])
+    loc[i+1].hide = false;
+    i++;
+  }
+  if(GAMERULES.resultsTPM){
+    loc[i+1].text = "TPM: "+(gamestate.board.tetriminoes/(Math.max(now - gamestate["playTimer"], 0.001) /60000)).toFixed(2)
+    loc[i+1].hide = false;
+    i++;
+  }
+  if(GAMERULES.resultsLPM){
+    loc[i+1].text = "LPM: "+(gamestate.board.linesCleared/(Math.max(now - gamestate["playTimer"], 0.001) /60000)).toFixed(2)
+    loc[i+1].hide = false;
+    i++;
+  }
+
+  MENUS.results.y = canvas.height/2-((1+i/2)*(canvas.height*BUTTON_GAP)+(1.5+i/2)*(canvas.height*BUTTON_HEIGHT))/2;
+  MENUS.results.contents[0].h = (1+i/2)*(canvas.height*BUTTON_GAP)+(1.5+i/2)*(canvas.height*BUTTON_HEIGHT);
+  currentMenu = "results";
 }
 
 function loadStyle(style){
@@ -329,9 +383,9 @@ function scaleMenus(){
       }, true, BUTTON_BACKGROUND, border_gap),
     ])
   ]);
-  MENUS.settings = new Div((cw - settings_width)/2, ch/2-(6*button_gap+6.5*button_height)/2, 
+  MENUS.settings = new Div((cw - settings_width)/2, ch/2-(7*button_gap+7.5*button_height)/2, 
   [
-    new Panel(0, 0, settings_width, 6*button_gap+6.5*button_height, panel_radius, "#3F3F3F", "#FFFFFF"),
+    new Panel(0, 0, settings_width, 7*button_gap+7.5*button_height, panel_radius, "#3F3F3F", "#FFFFFF"),
     
     new VBox(button_gap/2, button_gap, button_gap, [
       new CenteredText(-button_gap/2, 0, settings_width, button_height/2, "SETTINGS", font_size),
@@ -391,6 +445,11 @@ function scaleMenus(){
           obj.text = CHECK_OPTIONS[SCREEN_SHAKE?1:0];
         }, false),
       ]),
+
+      
+      new Button((settings_width - button_width*(3/4))/2, 0, button_width*(3/4), button_height*(3/4), button_radius*(3/4), MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, "CHANGE CONTROLS", font_size*(3/4), function (obj) {
+        currentMenu = "controls";
+      }),
 
       new HBox(0, 0, button_width/5.5, [
         new Text(0, 0, button_width / 2, button_height/2, "REPEAT RATE:", font_size*(3/4)),
@@ -452,11 +511,108 @@ function scaleMenus(){
     ]),
   ]);
 
+  MENUS.results = new Div((cw - settings_width)/2, ch/2-(5*button_gap+5*button_height)/2, [
+    new Panel(0, 0, settings_width, 5*button_gap+5*button_height, panel_radius, "#3F3F3F", "#FFFFFF"),
+
+    new VBox(0, button_gap, button_gap/2, [
+      new CenteredText(0, 0, settings_width, button_height/2, "RESULTS", font_size),
+      new Text(button_gap, 0, settings_width, button_height/2, "LEVEL: ", font_size*(3/4)),
+      new Text(button_gap, 0, settings_width, button_height/2, "LINES CLEARED: ", font_size*(3/4)),
+      new Text(button_gap, 0, settings_width, button_height/2, "SCORE: ", font_size*(3/4)),
+      new Text(button_gap, 0, settings_width, button_height/2, "TIME: ", font_size*(3/4)),
+      new Text(button_gap, 0, settings_width, button_height/2, "TPM: ", font_size*(3/4)),
+      new Text(button_gap, 0, settings_width, button_height/2, "LPM: ", font_size*(3/4)),
+      new Button((settings_width-button_width)/2, 0, button_width, button_height, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, "CONTINUE", font_size*(3/4), function () {  
+        currentMenu = "main";
+        let loc = MENUS.results.contents[1].contents;
+        for (let i = 1; i < loc.length-1; i++) {
+          loc[i].hide=true;
+        }
+        pushCookies();
+        gamestate = {...DEFAULT_GAMESTATE};
+        loadCookies();
+      }, true, BUTTON_BACKGROUND, border_gap),
+    ])
+  ])
+
+  MENUS.controls = new Div((cw - settings_width)/2, ch/2-(7*button_gap+6*button_height)/2, [
+    new Panel(0, 0, settings_width, 7*button_gap+6*button_height, panel_radius, "#3F3F3F", "#FFFFFF"),
+
+    new VBox(button_gap/2, button_gap, button_gap, [
+      new HBox(0, 0, button_gap*2, [
+        new Text(0, (button_height/2-font_size*(3/4))/2, button_width, button_height/2, "LEFT: ", font_size/2),
+        new Button(-button_width*(3/4) + button_gap, 0, button_width*(3/4), button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, getKeyFromFunc(moveLeft, keyBindings), font_size/2, function (obj) {
+          let loc = MENUS.controls.contents[1].contents[0].contents
+          let key = pollUserInput(loc[1], moveLeft);
+        }, false),
+      ]),
+      new HBox(0, 0, button_gap*2, [
+        new Text(0, (button_height/2-font_size*(3/4))/2, button_width, button_height/2, "RIGHT: ", font_size/2),
+        new Button(-button_width*(3/4) + button_gap, 0, button_width*(3/4), button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, getKeyFromFunc(moveRight, keyBindings), font_size/2, function (obj) {
+          let loc = MENUS.controls.contents[1].contents[1].contents
+          let key = pollUserInput(loc[1], moveRight);
+        }, false),
+      ]),
+      new HBox(0, 0, button_gap*2, [
+        new Text(0, (button_height/2-font_size*(3/4))/2, button_width, button_height/2, "CLOCKWISE: ", font_size/2),
+        new Button(-button_width*(3/4) + button_gap, 0, button_width*(3/4), button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, getKeyFromFunc(clockTurnAndKick, keyBindings), font_size/2, function (obj) {
+          let loc = MENUS.controls.contents[1].contents[2].contents
+          let key = pollUserInput(loc[1], clockTurnAndKick);
+        }, false),
+      ]),
+      new HBox(0, 0, button_gap*2, [
+        new Text(0, (button_height/2-font_size*(3/4))/2, button_width, button_height/2, "ANTICLOCK: ", font_size/2),
+        new Button(-button_width*(3/4) + button_gap, 0, button_width*(3/4), button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, getKeyFromFunc(antiClockTurnAndKick, keyBindings), font_size/2, function (obj) {
+          let loc = MENUS.controls.contents[1].contents[3].contents
+          let key = pollUserInput(loc[1], antiClockTurnAndKick);
+        }, false),
+      ]),
+      new HBox(0, 0, button_gap*2, [
+        new Text(0, (button_height/2-font_size*(3/4))/2, button_width, button_height/2, "FLIP: ", font_size/2),
+        new Button(-button_width*(3/4) + button_gap, 0, button_width*(3/4), button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, getKeyFromFunc(halfTurnAndKick, keyBindings), font_size/2, function (obj) {
+          let loc = MENUS.controls.contents[1].contents[4].contents
+          let key = pollUserInput(loc[1], halfTurnAndKick);
+        }, false),
+      ]),
+      new HBox(0, 0, button_gap*2, [
+        new Text(0, (button_height/2-font_size*(3/4))/2, button_width, button_height/2, "SOFTDROP: ", font_size/2),
+        new Button(-button_width*(3/4) + button_gap, 0, button_width*(3/4), button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, getKeyFromFunc(softdrop, keyBindings), font_size/2, function (obj) {
+          let loc = MENUS.controls.contents[1].contents[5].contents
+          let key = pollUserInput(loc[1], softdrop);
+        }, false),
+      ]),
+      new HBox(0, 0, button_gap*2, [
+        new Text(0, (button_height/2-font_size*(3/4))/2, button_width, button_height/2, "HARDDROP: ", font_size/2),
+        new Button(-button_width*(3/4) + button_gap, 0, button_width*(3/4), button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, getKeyFromFunc(harddrop, keyBindings), font_size/2, function (obj) {
+          let loc = MENUS.controls.contents[1].contents[6].contents
+          let key = pollUserInput(loc[1], harddrop);
+        }, false),
+      ]),
+      new HBox(0, 0, button_gap*2, [
+        new Text(0, (button_height/2-font_size*(3/4))/2, button_width, button_height/2, "HOLD: ", font_size/2),
+        new Button(-button_width*(3/4) + button_gap, 0, button_width*(3/4), button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, getKeyFromFunc(swapHold, keyBindings), font_size/2, function (obj) {
+          let loc = MENUS.controls.contents[1].contents[7].contents
+          let key = pollUserInput(loc[1], swapHold);
+        }, false),
+      ]),
+      
+      new HBox(button_gap/2, 0, button_width/5.5, [
+        new Button(0, 0, button_width/2, button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, "BACK", font_size*(3/4), function (obj) {
+          currentMenu = "settings";
+        }, true, BUTTON_BACKGROUND, border_gap),
+        new Button(0, 0, button_width/2, button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, "RESET", font_size*(3/4), function (obj) {
+          keyBindings = Object.assign({}, DEFAULT_KEY_BINDINGS);
+          scaleMenus();
+        }, true, BUTTON_BACKGROUND, border_gap),
+      ]),
+    ])
+  ])
+
   MENUS.main = new Div((cw - settings_width)/2, ch/2-(5*button_gap+5*button_height)/2, [
     new Panel(0, 0, settings_width, 5*button_gap+5*button_height, panel_radius, "#3F3F3F", "#FFFFFF"),
     
     new VBox(button_gap/2, button_gap, button_gap, [
-      new CenteredText(0, 0, settings_width, button_height/2, "GAME MODE", font_size),
+      new CenteredText(-button_gap/2, 0, settings_width, button_height/2, "GAME MODE", font_size),
 
       new HBox(0, 0, button_gap/2, [
         new Button(0, 0, button_width/3, button_height*(2/3), button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, "<", font_size*(3/4), function () {
@@ -569,5 +725,9 @@ function scaleMenus(){
                 }, false),
             ]),
         ]);
+    }
+    let loc = MENUS.results.contents[1].contents;
+    for (let i = 1; i < loc.length-1; i++) {
+      loc[i].hide=true;
     }
 }
