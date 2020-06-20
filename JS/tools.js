@@ -332,6 +332,31 @@ function loadCookies(){
   if (document.getCookie('screenShake') !== undefined) {SCREEN_SHAKE = parseBool(document.getCookie('screenShake'));};
   if (document.getCookie('ghost') !== undefined) {GHOST = parseBool(document.getCookie('ghost'));};
   if (document.getCookie('style') !== undefined) {loadStyle(document.getCookie('style')); STYLE = document.getCookie('style');};
+
+  if (document.getCookie("bindings:hold") !== undefined) {
+    bindInput(document.getCookie("bindings:hold").split(", "), swapHold, keyBindings);
+  };
+  if (document.getCookie("bindings:left") !== undefined) {
+    bindInput(document.getCookie("bindings:left").split(", "), moveLeft, keyBindings);
+  };
+  if (document.getCookie("bindings:right") !== undefined) {
+    bindInput(document.getCookie("bindings:right").split(", "), moveRight, keyBindings);
+  };
+  if (document.getCookie("bindings:rotClock") !== undefined) {
+    bindInput(document.getCookie("bindings:rotClock").split(", "), clockTurnAndKick, keyBindings);
+  };
+  if (document.getCookie("bindings:rotAnti") !== undefined) {
+    bindInput(document.getCookie("bindings:rotAnti").split(", "), antiClockTurnAndKick, keyBindings);
+  };
+  if (document.getCookie("bindings:rotHalf") !== undefined) {
+    bindInput(document.getCookie("bindings:rotHalf").split(", "), halfTurnAndKick, keyBindings);
+  };
+  if (document.getCookie("bindings:softdrop") !== undefined) {
+    bindInput(document.getCookie("bindings:softdrop").split(", "), softdrop, keyBindings);
+  };
+  if (document.getCookie("bindings:harddrop") !== undefined) {
+    bindInput(document.getCookie("bindings:harddrop").split(", "), harddrop, keyBindings);
+  };
 }
 loadCookies();
 
@@ -346,6 +371,15 @@ function pushCookies(){
   document.setCookie("screenShake", SCREEN_SHAKE);
   document.setCookie("ghost", GHOST);
   document.setCookie("style", STYLE);
+
+  document.setCookie("bindings:hold", getKeyFromFunc(swapHold, keyBindings));
+  document.setCookie("bindings:left", getKeyFromFunc(moveLeft, keyBindings));
+  document.setCookie("bindings:right", getKeyFromFunc(moveRight, keyBindings));
+  document.setCookie("bindings:rotClock", getKeyFromFunc(clockTurnAndKick, keyBindings));
+  document.setCookie("bindings:rotAnti", getKeyFromFunc(antiClockTurnAndKick, keyBindings));
+  document.setCookie("bindings:rotHalf", getKeyFromFunc(halfTurnAndKick, keyBindings));
+  document.setCookie("bindings:softdrop", getKeyFromFunc(softdrop, keyBindings));
+  document.setCookie("bindings:harddrop", getKeyFromFunc(harddrop, keyBindings));
 }
 
 window.onbeforeunload = function(){pushCookies();}
@@ -541,56 +575,56 @@ function scaleMenus(){
     new VBox(button_gap/2, button_gap, button_gap, [
       new HBox(0, 0, button_gap*2, [
         new Text(0, (button_height/2-font_size*(3/4))/2, button_width, button_height/2, "LEFT: ", font_size/2),
-        new Button(-button_width*(3/4) + button_gap, 0, button_width*(3/4), button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, getKeyFromFunc(moveLeft, keyBindings), font_size/2, function (obj) {
+        new Button(-button_width*(3/4) + button_gap, 0, button_width*(3/4), button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, getKeyFromFunc(moveLeft, keyBindings).toUpperCase(), font_size/2, function (obj) {
           let loc = MENUS.controls.contents[1].contents[0].contents
           let key = pollUserInput(loc[1], moveLeft);
         }, false),
       ]),
       new HBox(0, 0, button_gap*2, [
         new Text(0, (button_height/2-font_size*(3/4))/2, button_width, button_height/2, "RIGHT: ", font_size/2),
-        new Button(-button_width*(3/4) + button_gap, 0, button_width*(3/4), button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, getKeyFromFunc(moveRight, keyBindings), font_size/2, function (obj) {
+        new Button(-button_width*(3/4) + button_gap, 0, button_width*(3/4), button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, getKeyFromFunc(moveRight, keyBindings).toUpperCase(), font_size/2, function (obj) {
           let loc = MENUS.controls.contents[1].contents[1].contents
           let key = pollUserInput(loc[1], moveRight);
         }, false),
       ]),
       new HBox(0, 0, button_gap*2, [
         new Text(0, (button_height/2-font_size*(3/4))/2, button_width, button_height/2, "CLOCKWISE: ", font_size/2),
-        new Button(-button_width*(3/4) + button_gap, 0, button_width*(3/4), button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, getKeyFromFunc(clockTurnAndKick, keyBindings), font_size/2, function (obj) {
+        new Button(-button_width*(3/4) + button_gap, 0, button_width*(3/4), button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, getKeyFromFunc(clockTurnAndKick, keyBindings).toUpperCase(), font_size/2, function (obj) {
           let loc = MENUS.controls.contents[1].contents[2].contents
           let key = pollUserInput(loc[1], clockTurnAndKick);
         }, false),
       ]),
       new HBox(0, 0, button_gap*2, [
         new Text(0, (button_height/2-font_size*(3/4))/2, button_width, button_height/2, "ANTICLOCK: ", font_size/2),
-        new Button(-button_width*(3/4) + button_gap, 0, button_width*(3/4), button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, getKeyFromFunc(antiClockTurnAndKick, keyBindings), font_size/2, function (obj) {
+        new Button(-button_width*(3/4) + button_gap, 0, button_width*(3/4), button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, getKeyFromFunc(antiClockTurnAndKick, keyBindings).toUpperCase(), font_size/2, function (obj) {
           let loc = MENUS.controls.contents[1].contents[3].contents
           let key = pollUserInput(loc[1], antiClockTurnAndKick);
         }, false),
       ]),
       new HBox(0, 0, button_gap*2, [
         new Text(0, (button_height/2-font_size*(3/4))/2, button_width, button_height/2, "FLIP: ", font_size/2),
-        new Button(-button_width*(3/4) + button_gap, 0, button_width*(3/4), button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, getKeyFromFunc(halfTurnAndKick, keyBindings), font_size/2, function (obj) {
+        new Button(-button_width*(3/4) + button_gap, 0, button_width*(3/4), button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, getKeyFromFunc(halfTurnAndKick, keyBindings).toUpperCase(), font_size/2, function (obj) {
           let loc = MENUS.controls.contents[1].contents[4].contents
           let key = pollUserInput(loc[1], halfTurnAndKick);
         }, false),
       ]),
       new HBox(0, 0, button_gap*2, [
         new Text(0, (button_height/2-font_size*(3/4))/2, button_width, button_height/2, "SOFTDROP: ", font_size/2),
-        new Button(-button_width*(3/4) + button_gap, 0, button_width*(3/4), button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, getKeyFromFunc(softdrop, keyBindings), font_size/2, function (obj) {
+        new Button(-button_width*(3/4) + button_gap, 0, button_width*(3/4), button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, getKeyFromFunc(softdrop, keyBindings).toUpperCase(), font_size/2, function (obj) {
           let loc = MENUS.controls.contents[1].contents[5].contents
           let key = pollUserInput(loc[1], softdrop);
         }, false),
       ]),
       new HBox(0, 0, button_gap*2, [
         new Text(0, (button_height/2-font_size*(3/4))/2, button_width, button_height/2, "HARDDROP: ", font_size/2),
-        new Button(-button_width*(3/4) + button_gap, 0, button_width*(3/4), button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, getKeyFromFunc(harddrop, keyBindings), font_size/2, function (obj) {
+        new Button(-button_width*(3/4) + button_gap, 0, button_width*(3/4), button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, getKeyFromFunc(harddrop, keyBindings).toUpperCase(), font_size/2, function (obj) {
           let loc = MENUS.controls.contents[1].contents[6].contents
           let key = pollUserInput(loc[1], harddrop);
         }, false),
       ]),
       new HBox(0, 0, button_gap*2, [
         new Text(0, (button_height/2-font_size*(3/4))/2, button_width, button_height/2, "HOLD: ", font_size/2),
-        new Button(-button_width*(3/4) + button_gap, 0, button_width*(3/4), button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, getKeyFromFunc(swapHold, keyBindings), font_size/2, function (obj) {
+        new Button(-button_width*(3/4) + button_gap, 0, button_width*(3/4), button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, getKeyFromFunc(swapHold, keyBindings).toUpperCase(), font_size/2, function (obj) {
           let loc = MENUS.controls.contents[1].contents[7].contents
           let key = pollUserInput(loc[1], swapHold);
         }, false),

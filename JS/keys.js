@@ -220,18 +220,24 @@ function bindInput(newKey, func, oldMappings){
             }
         }
     }
-    oldMappings[newKey] = func;
+    if(Array.isArray(newKey)){
+        newKey.forEach(element => {
+            oldMappings[element] = func;
+        });
+    } else {
+        oldMappings[newKey] = func;
+    }
 }
 function getKeyFromFunc(func, mappings){
-    let result = "";
+    let result = [];
     for (const key in mappings) {
         if (mappings.hasOwnProperty(key)) {
             if(mappings[key] == func){
-                result += key.toUpperCase() + " ";
+                result.push(key);
             }
         }
     }
-    return result;
+    return result.join(", ");
 }
 
 var keyBindings = Object.assign({}, DEFAULT_KEY_BINDINGS);
