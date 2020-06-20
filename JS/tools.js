@@ -454,17 +454,17 @@ function scaleMenus(){
       new HBox(0, 0, button_width/5.5, [
         new Text(0, 0, button_width / 2, button_height/2, "REPEAT RATE:", font_size*(3/4)),
         new HBox(0, 0, -button_width/6, [
-          new Button(-button_width/12, 0, button_width/6, button_height/2, button_radius/2, [BUTTON_BACKGROUND, MENU_BUTTON_COLOUR][(AUTO_REPEAT_RATE<=1)?0:1], BUTTON_STROKE, [BUTTON_BACKGROUND, BUTTON_SELECT_COLOUR][(AUTO_REPEAT_RATE<=1)?0:1], "-", font_size*(3/4), function () {
-            let incr = 10, loc = MENUS[currentMenu].contents[1].contents[6].contents[1].contents;
+          new Button(-button_width/12, 0, button_width/6, button_height/2, button_radius/2, [BUTTON_BACKGROUND, MENU_BUTTON_COLOUR][(AUTO_REPEAT_RATE<=0)?0:1], BUTTON_STROKE, [BUTTON_BACKGROUND, BUTTON_SELECT_COLOUR][(AUTO_REPEAT_RATE<=0)?0:1], "-", font_size*(3/4), function () {
+            let incr = 10, loc = MENUS[currentMenu].contents[1].contents[7].contents[1].contents;
             if(AUTO_REPEAT_RATE < 20){incr = 1}
-            AUTO_REPEAT_RATE = Math.max(AUTO_REPEAT_RATE-incr, 1);
-            if(AUTO_REPEAT_RATE <= 1){loc[0].fillColor = BUTTON_BACKGROUND; loc[0].selectColor = BUTTON_BACKGROUND}
+            AUTO_REPEAT_RATE = Math.max(AUTO_REPEAT_RATE-incr, 0);
+            if(AUTO_REPEAT_RATE <= 0){loc[0].fillColor = BUTTON_BACKGROUND; loc[0].selectColor = BUTTON_BACKGROUND}
             else{loc[0].fillColor = MENU_BUTTON_COLOUR; loc[0].selectColor = BUTTON_SELECT_COLOUR}
             loc[1].text = AUTO_REPEAT_RATE.toString() + " MS";
           }, false),
           new CenteredText(0, 0, button_width/2, button_height/2, AUTO_REPEAT_RATE.toString()+" MS", font_size*(3/4)),
           new Button(button_width/12, 0, button_width/6, button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, "+", font_size*(3/4), function () {
-            let incr = 10, loc = MENUS[currentMenu].contents[1].contents[6].contents[1].contents;
+            let incr = 10, loc = MENUS[currentMenu].contents[1].contents[7].contents[1].contents;
             if(AUTO_REPEAT_RATE < 20){incr = 1}
             AUTO_REPEAT_RATE += incr;
             loc[1].text = AUTO_REPEAT_RATE.toString() + " MS";
@@ -477,17 +477,17 @@ function scaleMenus(){
       new HBox(0, 0, button_width/5.5, [
         new Text(0, 0, button_width / 2, button_height/2, "DELAY TIME:", font_size*(3/4)),
         new HBox(0, 0, -button_width/6, [
-          new Button(-button_width/12, 0, button_width/6, button_height/2, button_radius/2, [BUTTON_BACKGROUND, MENU_BUTTON_COLOUR][(DELAY_AUTO_SHIFT<=1)?0:1], BUTTON_STROKE, [BUTTON_BACKGROUND, BUTTON_SELECT_COLOUR][(DELAY_AUTO_SHIFT<=1)?0:1], "-", font_size*(3/4), function () {
-            let incr = 10, loc = MENUS[currentMenu].contents[1].contents[7].contents[1].contents;
+          new Button(-button_width/12, 0, button_width/6, button_height/2, button_radius/2, [BUTTON_BACKGROUND, MENU_BUTTON_COLOUR][(DELAY_AUTO_SHIFT<=0)?0:1], BUTTON_STROKE, [BUTTON_BACKGROUND, BUTTON_SELECT_COLOUR][(DELAY_AUTO_SHIFT<=0)?0:1], "-", font_size*(3/4), function () {
+            let incr = 10, loc = MENUS[currentMenu].contents[1].contents[8].contents[1].contents;
             if(DELAY_AUTO_SHIFT < 20){incr = 1}
-            DELAY_AUTO_SHIFT = Math.max(DELAY_AUTO_SHIFT-incr, 1);
+            DELAY_AUTO_SHIFT = Math.max(DELAY_AUTO_SHIFT-incr, 0);
             loc[1].text = DELAY_AUTO_SHIFT.toString() + " MS";
-            if(DELAY_AUTO_SHIFT <= 1){loc[0].fillColor = BUTTON_BACKGROUND; loc[0].selectColor = BUTTON_BACKGROUND}
+            if(DELAY_AUTO_SHIFT <= 0){loc[0].fillColor = BUTTON_BACKGROUND; loc[0].selectColor = BUTTON_BACKGROUND}
             else{loc[0].fillColor = MENU_BUTTON_COLOUR; loc[0].selectColor = BUTTON_SELECT_COLOUR}
           }, false),
           new CenteredText(0, 0, button_width/2, button_height/2, DELAY_AUTO_SHIFT.toString() + " MS", font_size*(3/4)),
           new Button(button_width/12, 0, button_width/6, button_height/2, button_radius/2, MENU_BUTTON_COLOUR, BUTTON_STROKE, BUTTON_SELECT_COLOUR, "+", font_size*(3/4), function () {
-            let incr = 10, loc = MENUS[currentMenu].contents[1].contents[7].contents[1].contents;
+            let incr = 10, loc = MENUS[currentMenu].contents[1].contents[8].contents[1].contents;
             if(DELAY_AUTO_SHIFT < 20){incr = 1}
             DELAY_AUTO_SHIFT += incr;
             loc[1].text = DELAY_AUTO_SHIFT.toString() + " MS";

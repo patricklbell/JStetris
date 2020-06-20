@@ -142,11 +142,17 @@ function gameloop (time) {
         shiftDelayBuffer += dt;
       } else {
         // start repeating
-        if(lastHandledKeyBuffer >= AUTO_REPEAT_RATE){
-          keyBindings[keyPressed]();
-          lastHandledKeyBuffer = 0;
+        if(AUTO_REPEAT_RATE === 0){
+          for (let i = 0; i < 10; i++) {
+            keyBindings[keyPressed]()
+          }
+        } else {
+          if(lastHandledKeyBuffer >= AUTO_REPEAT_RATE){
+            keyBindings[keyPressed]();
+            lastHandledKeyBuffer = 0;
+          }
+          lastHandledKeyBuffer += dt;
         }
-        lastHandledKeyBuffer += dt;
       }
     }
     
