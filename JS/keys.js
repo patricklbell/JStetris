@@ -207,9 +207,9 @@ var DEFAULT_KEY_BINDINGS = {
     "ArrowRight" : moveRight,
     "Space" : harddrop,
     "ControlLeft" : antiClockTurnAndKick,
-    "KeyZ" : antiClockTurnAndKick,
+    "KeyC" : antiClockTurnAndKick,
     "KeyX" : halfTurnAndKick,
-    "KeyC" : clockTurnAndKick,
+    "KeyZ" : clockTurnAndKick,
 }
 
 function bindInput(newKey, func, oldMappings){
