@@ -101,6 +101,7 @@ var AUDIO = {
     "ready" : new Audio('./assets/audio/ready.mp3'),
     "rotfail" : new Audio('./assets/audio/rotfail.mp3'),
     "softdrop" : new Audio('./assets/audio/softdrop.mp3'),
+    "cursor" : new Audio('./assets/audio/cursor.mp3'),
     "theme" : new Audio('./assets/audio/theme.mp3'),
 }
 AUDIO["theme"].loop = true;

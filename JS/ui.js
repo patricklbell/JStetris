@@ -106,6 +106,7 @@ class Button {
             ctx.drawText(this.text, trueX + this.w / 2 - this.fontSize * this.text.length / 2, trueY + this.h / 2 - this.fontSize / 2, MENU_FONT_STYLE, this.fontSize);
 
             if (selected && clicked && this.onclick !== undefined) {
+                if(SOUND_EFFECTS){AUDIO["cursor"].cloneNode().play();}
                 this.onClick();
             }
         }
